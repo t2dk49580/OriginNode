@@ -653,6 +653,7 @@ bool onnObject::checkBlockNewIdentity(QString pName, QByteArray pData){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::setBoss(QByteArray pContract,QByteArray pAddress){
+    BUG << pContract << pAddress;
     if(onnBoss.contains(pContract)){
         rmBossFromAddress(onnBoss.value(pContract));
     }
@@ -1189,8 +1190,8 @@ void onnObject::onDeployOld(QByteArray pData){
         return;
     }
     if(!getContracts().isEmpty()){
-        result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
-        if(_doMethod(luaInterface,"_getTotal",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
+        //result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
+        if(_doMethod(getContract("0"),"_setDeployBoss",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
             BUG << "setDeployBoss ok";
             setBoss(name.toLatin1(),result.toLatin1());
         }else{
