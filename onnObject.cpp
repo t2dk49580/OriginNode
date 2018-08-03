@@ -653,6 +653,7 @@ bool onnObject::checkBlockNewIdentity(QString pName, QByteArray pData){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::setBoss(QByteArray pContract,QByteArray pAddress){
+    BUG << pContract << pAddress;
     if(onnBoss.contains(pContract)){
         rmBossFromAddress(onnBoss.value(pContract));
     }
@@ -1184,16 +1185,19 @@ void onnObject::onDeployOld(QByteArray pData){
         curTotal = result;
     }else{
         curTotal = "0";
+        BUG << "_getTotal fail" << result;
+        lua_close(luaInterface);
+        return;
     }
     if(!getContracts().isEmpty()){
-        result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
-        if(result=="fail"){
-            BUG << "setDeployBoss fail";
-            lua_close(luaInterface);
-            return;
-        }else{
+        //result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
+        if(_doMethod(getContract("0"),"_setDeployBoss",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
             BUG << "setDeployBoss ok";
             setBoss(name.toLatin1(),result.toLatin1());
+        }else{
+            BUG << "setDeployBoss fail" << result;
+            lua_close(luaInterface);
+            return;
         }
     }
     if(flagStart && !resultInit.isEmpty() && resultInit != "null"){
@@ -1714,22 +1718,29 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
         BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
         emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
     }
+    QList<onnSyncQueue> curRemove;
     for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){
         onnSyncQueue curData;
         if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request")){
             continue;
         }
         if(onnBlackList.contains(cur.value().blockAddress)){
-            rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            curRemove.append(getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request"));
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
             continue;
         }
         curData = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
         if(QDateTime::currentMSecsSinceEpoch()-curData.blockLastModify>60*1000){
-            rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            curRemove.append(curData);
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
             onnBlackList.append(cur.value().blockAddress);
             //emit doRequireBlockChainData(cur.value().blockContract,cur.value().blockAddress,curData.blockCurrentIndex,curData.blockEnd);
         }
     }
+    for(auto cur:curRemove){
+        rmSyncQueue(cur.blockContract,cur.blockAddress,"request");
+    }
+    curRemove.clear();
     QList<onnSyncQueue> curSyncQueue;
     for(auto cur=onnSyncResponse.begin();cur!=onnSyncResponse.end();cur++){
         if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response")){

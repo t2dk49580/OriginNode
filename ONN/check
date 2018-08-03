@@ -1,6 +1,0 @@
-#!/bin/bash
-
-HLINE=`find . -name '*.h' |xargs wc -l|tail -1|awk '{ print $1 }'`
-CLINE=`find . -name '*.cpp' |xargs wc -l|tail -1|awk '{ print $1 }'`
-LLINE=`find . -name '*.lua' |xargs wc -l|tail -1|awk '{ print $1 }'`
-echo $((HLINE+CLINE+LLINE))

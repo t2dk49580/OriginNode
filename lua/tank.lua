@@ -13,6 +13,7 @@ gPlayerMax = 2
 gBalance = {}
 gTotal   = 10000
 gQueue   = {}
+gTotal   = 10000000
 
 function _setUser(pUser)
     gUser = pUser
@@ -47,6 +48,10 @@ end
 
 function _getOwner()
     return gOwner
+end
+
+function _getTotal()
+    return gTotal
 end
 
 function getSymbol()
@@ -87,9 +92,9 @@ function _getResult(pUser,pMethod,pResult,pMsg)
 end
 
 function timeout()
-    if gUser ~= gOwner then
-        return 'fail'
-    end
+    --if gUser ~= gOwner then
+    --    return 'fail'
+    --end
     if gTimeout >= 300*16 then
         gTimeout = 0
         gPlayer  = {}
@@ -124,6 +129,14 @@ end
 function play(pData)
     table.insert(gQueue, pData)
     return _getResult(gUser,'play',true,pData)
+end
+
+function closeGame()
+    gPlayer = 0
+    gPlayer = {}
+    gTimeout = 0
+    gQueue = {}
+    return _getResult(gUser,'closeGame',true,0)
 end
 
 _setUser('root')
