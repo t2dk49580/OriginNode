@@ -1718,22 +1718,29 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
         BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
         emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
     }
+    QList<onnSyncQueue> curRemove;
     for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){
         onnSyncQueue curData;
         if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request")){
             continue;
         }
         if(onnBlackList.contains(cur.value().blockAddress)){
-            rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            curRemove.append(getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request"));
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
             continue;
         }
         curData = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
         if(QDateTime::currentMSecsSinceEpoch()-curData.blockLastModify>60*1000){
-            rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            curRemove.append(curData);
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
             onnBlackList.append(cur.value().blockAddress);
             //emit doRequireBlockChainData(cur.value().blockContract,cur.value().blockAddress,curData.blockCurrentIndex,curData.blockEnd);
         }
     }
+    for(auto cur:curRemove){
+        rmSyncQueue(cur.blockContract,cur.blockAddress,"request");
+    }
+    curRemove.clear();
     QList<onnSyncQueue> curSyncQueue;
     for(auto cur=onnSyncResponse.begin();cur!=onnSyncResponse.end();cur++){
         if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response")){
