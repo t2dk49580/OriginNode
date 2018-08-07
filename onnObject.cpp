@@ -1683,11 +1683,11 @@ void onnObject::onBroadcastAppNew(QByteArray pData){
 
 void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNew){
     if(flagStart == false){
-        BUG << "flagStart == false";
+        BUG << "fail: flagStart == false";
         return;
     }else{
         if(pList.isEmpty()){
-            BUG << "pList.count()==0";
+            BUG << "fail: pList.count()==0";
             return;
         }
         pList.append(GETADDR(getPubkey()));
@@ -1714,6 +1714,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
             QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,curData);
         }
     }
+    /*
     for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
         BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
         emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
@@ -1787,6 +1788,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
     for(auto curBossAddress:curBossLose){
         rmBossFromAddress(curBossAddress);
     }
+    */
 }
 void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, QString pData){
     BUG << pContract << pAddress;
@@ -1889,7 +1891,7 @@ void onnObject::onCustomBroadcast(QString, QString, QString, QString){
 
 void onnObject::onCustomRequire(QString, QString, QString cmd, QString data){
     if(flagStart == false){
-        BUG << "falg == false";
+        BUG << "fail: falg == false";
         return;
     }
     BUG << cmd;
@@ -1899,7 +1901,7 @@ void onnObject::onCustomRequire(QString, QString, QString cmd, QString data){
         //emit doBlockNew(data.toLatin1());
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,data.toLatin1());
     }else{
-        BUG << "Unknow cmd" << cmd;
+        BUG << "fail: Unknow cmd" << cmd;
     }
 }
 
@@ -1910,10 +1912,100 @@ void onnObject::onBossMissing(QByteArrayList pList){
         QString curResult = setNextBoss(curContract+"?10000");
 
         if(curResult == "fail"){
-            BUG << "_setNextBoss fail" << curContract << curResult;
+            BUG << "fail: _setNextBoss fail" << curContract << curResult;
         }else{
-            BUG << "_setNextBoss ok" << curContract << curResult;
+            BUG << "fail: _setNextBoss ok" << curContract << curResult;
             setBoss(curContract,curResult.toLatin1());
         }
+    }
+}
+
+void onnObject::onTimeout(){
+    if(!flagStart){
+        BUG << "fail: flagStart == false";
+        return;
+    }
+    if(getPeerList().isEmpty()){
+        BUG << "fail: pList.isEmpty()";
+        return;
+    }
+    QStringList curPeerList = getPeerList();
+    if(curPeerList.count() == 1 && curPeerList.first() == GETADDR(getPubkey())){
+        BUG << "fail: curPeerList.count() == 1 && ==" << GETADDR(getPubkey();
+        return;
+    }
+
+    for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
+        BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
+        emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
+    }
+    QList<onnSyncQueue> curRemove;
+    for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){
+        onnSyncQueue curData;
+        if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request")){
+            continue;
+        }
+        if(onnBlackList.contains(cur.value().blockAddress)){
+            curRemove.append(getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request"));
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            continue;
+        }
+        curData = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+        if(QDateTime::currentMSecsSinceEpoch()-curData.blockLastModify>60*1000){
+            curRemove.append(curData);
+            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
+            onnBlackList.append(cur.value().blockAddress);
+            //emit doRequireBlockChainData(cur.value().blockContract,cur.value().blockAddress,curData.blockCurrentIndex,curData.blockEnd);
+        }
+    }
+    for(auto cur:curRemove){
+        rmSyncQueue(cur.blockContract,cur.blockAddress,"request");
+    }
+    curRemove.clear();
+    QList<onnSyncQueue> curSyncQueue;
+    for(auto cur=onnSyncResponse.begin();cur!=onnSyncResponse.end();cur++){
+        if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response")){
+            continue;
+        }
+        onnSyncQueue curQueue = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response");
+        quint32 curSize = 0;
+        QJsonArray curArray;
+        QJsonDocument curDocument;
+        QByteArray curKey,curVar;
+        for(qint64 i=curQueue.blockCurrentIndex.toLongLong();i<=curQueue.blockEnd.toLongLong() && curSize<88000;i++){
+            curKey = cur.value().blockContract+"-"+QString::number(i).toLatin1();
+            curVar = getDatabaseBlock(curKey);
+            curSize += curVar.count();
+            curArray.append(QString(curVar));
+        }
+        if(curSize>100000 && curArray.count()>1){
+            curSize -= curArray.last().toString().count();
+            curArray.removeLast();
+            curVar = curArray.last().toString().toLatin1();
+        }
+        onnBlock curBlock = createBlock(curVar);
+        BUG << curBlock.blockIndex;
+        curDocument.setArray(curArray);
+        emit doSendBlockChainData(cur.value().blockContract,cur.value().blockAddress,curDocument.toJson());
+        if(!updSyncQueueIndex(cur.value().blockContract,cur.value().blockAddress,"response",curBlock.blockIndex)){
+            curSyncQueue.append(curQueue);
+        }
+    }
+    for(auto cur:curSyncQueue){
+        rmSyncQueue(cur.blockContract,cur.blockAddress,"response");
+    }
+    if(!getBossAddressList().contains(GETADDR(getPubkey()))){
+        return;
+    }
+    if(getPeerList().isEmpty()){
+        return;
+    }
+    //QStringList curBossLose = getBossLose(pLose);
+    QByteArrayList curBossLose = getBossMissing(getPeerList());
+    if(curBossLose.isEmpty()){
+        return;
+    }
+    for(auto curBossAddress:curBossLose){
+        rmBossFromAddress(curBossAddress);
     }
 }

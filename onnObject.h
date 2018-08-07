@@ -194,6 +194,7 @@ public slots:
     virtual void onInitFinish();
     virtual void onStart();
     virtual void onStartFinish();
+    virtual void onTimeout();
 
     void onBlockOld(QByteArray);
     void onDeployOld(QByteArray);
