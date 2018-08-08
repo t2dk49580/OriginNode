@@ -2,7 +2,7 @@
 
 UdpNetwork::UdpNetwork(QObject *parent) : QObject(parent)
 {
-
+    connect(&udp,&QUdpSocket::readyRead,this,&UdpNetwork::OnRcv);
 }
 
 UdpNetwork::~UdpNetwork()
@@ -10,11 +10,20 @@ UdpNetwork::~UdpNetwork()
     udp.close();
 }
 
+void UdpNetwork::Listen(quint16 port)
+{
+    Listen(QHostAddress::LocalHost,port);
+}
+
+void UdpNetwork::Listen(QIPEndPoint endPoint)
+{
+    Listen(endPoint.IP(),endPoint.Port());
+}
+
 void UdpNetwork::Listen(QHostAddress addr, quint16 port)
 {
-    qDebug() << __FUNCTION__ << addr << port;
+    qDebug()<<__FUNCTION__<<__LINE__<<addr<<port;
     udp.close();
-    QObject::connect(&udp,&QUdpSocket::readyRead,this,&UdpNetwork::OnRcv);
     udp.bind(addr,port,QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 }
 
@@ -40,7 +49,7 @@ bool UdpNetwork::Send(QString msg)
     //qDebug()<<__FUNCTION__<<msg;
     auto res = udp.writeDatagram(msg.toLatin1(),sendAddr,sendPort);
     if(res == -1){
-        qDebug()<<udp.errorString()<<sendAddr<<sendPort<<msg;
+        qDebug()<<udp.errorString();
         return false;
     }
     return true;
@@ -50,10 +59,15 @@ bool UdpNetwork::Send(QHostAddress addr, quint16 port, QString msg)
 {
     auto res = udp.writeDatagram(msg.toLatin1(),addr,port);
     if(res == -1){
-        qDebug()<<udp.errorString()<<addr<<port<<msg;
+        qDebug()<<udp.errorString();
         return false;
     }
     return true;
+}
+
+bool UdpNetwork::Send(QIPEndPoint ep, QString msg)
+{
+    return Send(ep.IP(), ep.Port(), msg);
 }
 
 bool UdpNetwork::SendAndSet(QHostAddress addr, quint16 port, QString msg)
@@ -94,6 +108,11 @@ QHostAddress UdpNetwork::getRcvAddr() const
 quint16 UdpNetwork::getRcvPort() const
 {
     return udp.localPort();
+}
+
+QIPEndPoint UdpNetwork::getRcvEndPoint() const
+{
+    return QIPEndPoint(udp.localAddress(),udp.localPort());
 }
 
 QHostAddress UdpNetwork::getSendAddr() const

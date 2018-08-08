@@ -9,11 +9,11 @@
 #include <QMap>
 #include "messageprotocol.h"
 #include "qipendpoint.h"
-#include "nodeinfo.h"
+#include "npeerdata.h"
 #include "nsubnet.h"
 #include "np2pserverinterface.h"
 
-#define HeartBeatInterval 10
+#define HeartBeatInterval 3
 
 class NP2PNode : public QObject
 {
@@ -21,52 +21,49 @@ class NP2PNode : public QObject
 public:
     explicit NP2PNode(QObject *parent = nullptr);
     ~NP2PNode();
-    void Init(QString id, QIPEndPoint natServer, QIPEndPoint p2pServer, QIPEndPoint local);
+    void Init(QString id, QIPEndPoint natServer, QIPEndPoint local);
+    void SetP2PList(QString data);
 
-    void setID(QString localAddress);//ID addr
-    void setP2PServer(QIPEndPoint server);//Set P2P Server Address
+    void setID(QString ID);//ID addr
+    QString getID() const;
+
     void bindLocalEndPoint(QIPEndPoint localEndPoint);//Set local EndPoint
-
-    void join(QIPEndPoint endPoint);
+    void join(QIPEndPoint ep);
 
     QStringList neighbourList();
-    void sendbyAddr(QString msg, QString localAddress);
-    void sendMsg(QString msg,QString localAddress);
+    void sendMsg(QString msg,QString ID);
     void broadcastMsg(QString msg);
 
-    void RequireJoin();
-    void RequireAllPeersList();
-    void RequireNatbyAddr(QByteArrayList addrs);
+    QIPEndPoint getLocalEndPoint();
+    QHostAddress getLocalAddress();
+    quint16 getLocalPort();
 
-    static QHostAddress getLocalIP();
-    static QString getLocalIP2();
+    QIPEndPoint getNatEndPoint() const;
+
+    QString getLocalInfoString();//for p2pServer Require
 
 signals:
+    void RequireJoin();
     void neighbourListUpdate(QStringList list);
-    void RcvP2PAllAddress(QStringList list);
+    //void RcvP2PAllAddress(QStringList list);
     void RcvMsg(QString msg);//need Sender id
 
 private slots:
-    void OnP2PMsg(QString cmd, QString dat);
     void OnNatMsg(QString msg);
     void OnHeartbeat();
 
 private:
-    void GetP2PList(QString data);//
-    void GetAllAddr(QString data);//
-    void GetNatbyAddr(QString data);//
-
     void Ping(QString addr);
     void Pong(QString addr);
+    void sendbyAddr(QString msg, QString ID);
 
-    //QIPEndPoint natServer;//!!! nat server addr init
+    QString ID;
+    QIPEndPoint natServer;//!!! nat server addr init
     QIPEndPoint natEndPoint;//
     UdpNetwork nat;
-    QString localAddress;
+
     NSubNet net;
     QTimer heartbeatTimer;
-
-    NP2PServerInterface p2pServerInterface;
 };
 
 #endif // NP2PNODE_H

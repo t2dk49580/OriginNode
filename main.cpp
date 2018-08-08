@@ -1,6 +1,8 @@
 #include <QCoreApplication>
 #include "onnSystem.h"
 
+QTimer *timerUdpd = new QTimer();
+
 QThread *threadChecker   = new QThread();
 QThread *threadContract  = new QThread();
 QThread *threadDatabase  = new QThread();
@@ -87,6 +89,9 @@ int main(int argc, char *argv[])
 
     CONN(blockUdpd,SIGNAL(doBlockOld(QByteArray)),blockChecker,SLOT(onBlockOld(QByteArray)));
 
+    CONN(timerUdpd,SIGNAL(timeout()),blockUdpd,SLOT(onTimeout()));
+
     obj->init();
+    timerUdpd->start(1000);
     return a.exec();
 }

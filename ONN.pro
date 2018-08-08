@@ -33,7 +33,7 @@ SOURCES += \
     onnChecker.cpp
 
 include("./Crypto/EmccSDK/nemcc/nemcc.pri")
-include("./p2psrc/NP2P.pri")
+include("./p2psrc/np2p.pri")
 include("./NetSync/netsync.pri")
 include("./Network/network.pri")
 

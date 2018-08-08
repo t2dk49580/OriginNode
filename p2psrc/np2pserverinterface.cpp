@@ -3,15 +3,19 @@
 
 NP2PServerInterface::NP2PServerInterface(QObject *parent) : QObject(parent)
 {
-
-}
-
-void NP2PServerInterface::Init(QHostAddress ip, quint16 port)
-{
     QObject::connect(&udp, &UdpNetwork::Rcv,
                      this, &NP2PServerInterface::OnUdp);
-    udp.Listen(ip,port);
-    udp.SetSendEndPoint(ip,port);
+}
+
+void NP2PServerInterface::Init(QIPEndPoint local, QIPEndPoint server)
+{
+    Init(local.IP(), server.IP(), server.Port());
+}
+
+void NP2PServerInterface::Init(QHostAddress local, QHostAddress server, quint16 port)
+{
+    udp.Listen(local,port);
+    udp.SetSendEndPoint(server,port);
 }
 
 void NP2PServerInterface::Query(QString msg)

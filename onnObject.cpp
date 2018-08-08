@@ -1931,7 +1931,7 @@ void onnObject::onTimeout(){
     }
     QStringList curPeerList = getPeerList();
     if(curPeerList.count() == 1 && curPeerList.first() == GETADDR(getPubkey())){
-        BUG << "fail: curPeerList.count() == 1 && ==" << GETADDR(getPubkey();
+        BUG << "fail: curPeerList.count() == 1 && ==" << GETADDR(getPubkey());
         return;
     }
 

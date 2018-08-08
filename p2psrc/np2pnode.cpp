@@ -4,7 +4,6 @@
 
 NP2PNode::NP2PNode(QObject *parent) : QObject(parent)
 {
-    QObject::connect(&p2pServerInterface, &NP2PServerInterface::ServerMsg, this, &NP2PNode::OnP2PMsg);
     QObject::connect(&nat, &UdpNetwork::Rcv, this, &NP2PNode::OnNatMsg);
     QObject::connect(&heartbeatTimer, &QTimer::timeout, this, &NP2PNode::OnHeartbeat);
 }
@@ -14,38 +13,52 @@ NP2PNode::~NP2PNode()
     heartbeatTimer.stop();
 }
 
-void NP2PNode::Init(QString id, QIPEndPoint natServer, QIPEndPoint p2pServer, QIPEndPoint local)
+void NP2PNode::Init(QString id, QIPEndPoint natServer, QIPEndPoint local)
 {
     setID(id);
     bindLocalEndPoint(local);
-    setP2PServer(p2pServer);
     join(natServer);
+}
+
+void NP2PNode::SetP2PList(QString data)
+{
+    auto datas = data.split(';');
+    foreach (QString d, datas) {
+        NPeerData info;
+        info.SetData(d);
+        //skip myself
+        if(info.getId() == this->ID){
+            continue;
+        }
+        net.enter(d);
+    }
 }
 
 void NP2PNode::setID(QString id)
 {
-    this->localAddress = id;
+    this->ID = id;
+}
+
+QString NP2PNode::getID() const
+{
+    return ID;
 }
 
 void NP2PNode::bindLocalEndPoint(QIPEndPoint localEndPoint)
 {
-    //qDebug() << __FUNCTION__ << localEndPoint.ToString();
     nat.Listen(localEndPoint.IP(),localEndPoint.Port());
 }
 
-void NP2PNode::setP2PServer(QIPEndPoint server)
+void NP2PNode::join(QIPEndPoint ep)
 {
-    p2pServerInterface.Init(server.IP(),server.Port());
-}
-
-void NP2PNode::join(QIPEndPoint endPoint)
-{
-    if(endPoint.IP() == nat.getRcvAddr()){
-        natEndPoint.Init(endPoint.IP().toString(),nat.getSendPort());
-        RequireJoin();
-    }else{
-        nat.Send(endPoint.IP(),endPoint.Port(),localAddress);
-    }
+    //    if(endPoint.IP() == nat.getRcvAddr()){
+    //        natEndPoint.Init(endPoint.IP().toString(),nat.getSendPort());
+    //        RequireJoin();
+    //    }else{
+    qDebug()<<__FUNCTION__<<__LINE__<<ep.ToString();
+    natServer.Init(ep.ToString());
+    nat.Send(natServer.IP(),natServer.Port(),ID);
+    //    }
 
     heartbeatTimer.start(HeartBeatInterval*1000);
 }
@@ -57,33 +70,24 @@ QStringList NP2PNode::neighbourList()
     return ls;
 }
 
-void NP2PNode::RequireJoin()
+QIPEndPoint NP2PNode::getLocalEndPoint()
 {
-    QString msg = MessageProtocol::Encode("P2PN",localAddress
-                                          + "," + QIPEndPoint(nat.getRcvAddr(),nat.getRcvPort()).ToString()
-                                          + "," + natEndPoint.ToString());
-    p2pServerInterface.Query(msg);
+    return nat.getRcvEndPoint();
 }
 
-void NP2PNode::RequireAllPeersList()
+QHostAddress NP2PNode::getLocalAddress()
 {
-    QString msg = "ALL ";
-    p2pServerInterface.Query(msg);
+    return nat.getRcvAddr();
 }
 
-void NP2PNode::RequireNatbyAddr(QByteArrayList addrs)
+quint16 NP2PNode::getLocalPort()
 {
-    QStringList ls;
-    foreach(auto a, addrs){
-        ls.append(QString(a.toHex()));
-    }
-    QString msg = "IPLS" + ls.join(',');
-    p2pServerInterface.Query(msg);
+    return nat.getRcvPort();
 }
 
 void NP2PNode::sendbyAddr(QString msg, QString id)
 {
-    if(this->localAddress == id){
+    if(this->ID == id){
         //qDebug()<<"Can`t send to myself!"<<this->id<<id;
         return;
     }
@@ -96,13 +100,14 @@ void NP2PNode::sendbyAddr(QString msg, QString id)
     auto data = msg;
     auto nodeInfo = net.get(id);
 
+    //qDebug()<<__FUNCTION__<<natEndPoint.ToString();
     if(nodeInfo.nat.IP() == natEndPoint.IP()){
         //LAN
-        qDebug()<<"LAN P2P:"<<data<<" to:"<<nodeInfo.loc.ToString();
+        //qDebug()<<"LAN P2P:"<<data<<" to:"<<nodeInfo.loc.ToString();
         nat.Send(nodeInfo.loc.IP(),nodeInfo.loc.Port(),data);
     }else{
         //WAN
-        qDebug()<<"WAN P2P:"<<data<<" to:"<<nodeInfo.nat.ToString();
+        //qDebug()<<"WAN P2P:"<<data<<" to:"<<nodeInfo.nat.ToString();
         nat.Send(nodeInfo.nat.IP(),nodeInfo.nat.Port(),data);
     }
 }
@@ -120,54 +125,8 @@ void NP2PNode::broadcastMsg(QString msg)
     }
 }
 
-QHostAddress NP2PNode::getLocalIP()
-{
-    auto hostName = QHostInfo::localHostName();
-    auto host = QHostInfo::fromName(hostName);
-    //qDebug()<<host.addresses();
-    foreach(auto ip, host.addresses()){
-        if(ip.protocol() == QAbstractSocket::IPv4Protocol){
-            return ip;
-        }
-    }
-    return QHostAddress();
-}
-
-QString NP2PNode::getLocalIP2(){
-    QString ipAddr;
-    QList<QHostAddress> AddressList = QNetworkInterface::allAddresses();
-    for(QHostAddress address:AddressList){
-        if(address.protocol() == QAbstractSocket::IPv4Protocol){
-            if (address.toString().contains("127.0.")){
-                continue;
-            }
-            return address.toString();
-        }
-    }
-    return ipAddr;
-}
-
-void NP2PNode::OnP2PMsg(QString cmd, QString dat)
-{
-    if(cmd == "P2PN"){
-        qDebug()<<"Rcv P2P:"+ dat;
-        GetP2PList(dat);
-    }
-
-    if(cmd == "ALL "){
-        //qDebug()<<"Rcv All Addr:"+ dat;
-        GetAllAddr(dat);
-    }
-
-    if(cmd == "IPLS"){
-        //qDebug()<<"Rcv NAT by Addr:" + dat;
-        GetNatbyAddr(dat);
-    }
-}
-
 void NP2PNode::OnNatMsg(QString msg)
 {
-    //qDebug() << __FUNCTION__ << msg;
     MessageProtocol mp;
     auto cmd = mp.Decode(msg);
 
@@ -176,19 +135,7 @@ void NP2PNode::OnNatMsg(QString msg)
     if(cmd == "NAT "){
         natEndPoint.Init(mp.getData());
         qDebug()<<"Rcv NAT:"+ natEndPoint.ToString();
-        RequireJoin();
-        return;
-    }
-
-    if(cmd == "PING"){
-        //qDebug()<<"Ping from:"<<mp.getData();
-        sendbyAddr("PONG"+localAddress,mp.getData());
-        return;
-    }
-
-    if(cmd == "PONG"){
-        //qDebug()<<"Pong from:"<<mp.getData();
-        Pong(mp.getData());
+        emit RequireJoin();
         return;
     }
 
@@ -197,51 +144,53 @@ void NP2PNode::OnNatMsg(QString msg)
         emit RcvMsg(mp.getData());
         return;
     }
+
+    if(cmd == "PING"){
+        //qDebug()<<"Ping from:"<<mp.getData();
+        auto addr = mp.getData();
+        net.rcvPing(addr);
+        sendbyAddr("PONG"+ID,addr);
+        return;
+    }
+
+    if(cmd == "PONG"){
+        //qDebug()<<"Pong from:"<<mp.getData();
+        Pong(mp.getData());
+        return;
+    }
     qDebug()<<"Undefine CMD:"<<cmd;
 }
 
 void NP2PNode::OnHeartbeat()
 {
-    RequireJoin();
+    emit RequireJoin();
+    //qDebug()<<__FUNCTION__<<__LINE__<<neighbourList();
     net.removeDeadMemberAtNow();
     foreach(auto memberID, neighbourList()){
         Ping(memberID);
     }
     emit neighbourListUpdate(neighbourList());
-}
 
-void NP2PNode::GetP2PList(QString data)
-{
-    auto datas = data.split(';');
-    foreach (auto d, datas) {
-        NodeInfo info;
-        info.SetData(d);
-        //skip myself
-        if(info.getId() == this->localAddress){
-            continue;
-        }
-        net.enter(d);
-    }
-    emit neighbourListUpdate(neighbourList());
-}
-
-void NP2PNode::GetAllAddr(QString data)
-{
-    emit RcvP2PAllAddress(data.split(';'));
-}
-
-void NP2PNode::GetNatbyAddr(QString data)
-{
-    QStringList ls = data.split(";");
+    nat.Send(natServer.IP(),natServer.Port(),ID);//heartBeat to nat server
 }
 
 void NP2PNode::Ping(QString addr)
 {
-    sendbyAddr("PING" + localAddress,addr);
     net.ping(addr);
+    sendbyAddr("PING" + ID,addr);
 }
 
 void NP2PNode::Pong(QString addr)
 {
     net.pong(addr);
+}
+
+QIPEndPoint NP2PNode::getNatEndPoint() const
+{
+    return natEndPoint;
+}
+
+QString NP2PNode::getLocalInfoString()
+{
+    return getID() + "," + getLocalEndPoint().ToString() + "," + getNatEndPoint().ToString();
 }

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtNetwork>
+#include "qipendpoint.h"
 
 class UdpNetwork : public QObject
 {
@@ -10,6 +11,8 @@ class UdpNetwork : public QObject
 public:
     explicit UdpNetwork(QObject *parent = nullptr);
     ~UdpNetwork();
+    void Listen(quint16 port);
+    void Listen(QIPEndPoint endPoint);
     void Listen(QHostAddress addr, quint16 port);
     void SetSendEndPoint(QHostAddress addr, quint16 port);
     void SetIPCPort(int port);
@@ -17,12 +20,14 @@ public:
 
     bool Send(QString msg);
     bool Send(QHostAddress addr, quint16 port, QString msg);
+    bool Send(QIPEndPoint ep, QString msg);
     bool SendAndSet(QHostAddress addr, quint16 port, QString msg);
 
     QHostAddress getSendAddr() const;
     quint16 getSendPort() const;
     QHostAddress getRcvAddr() const;
     quint16 getRcvPort() const;
+    QIPEndPoint getRcvEndPoint() const;
 
 signals:
     void Rcv(QString msg, QHostAddress senderIP, quint16 senderPort);
