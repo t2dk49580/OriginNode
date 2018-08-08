@@ -1932,11 +1932,11 @@ void onnObject::onTimeout(){
         BUG << "fail: flagStart == false";
         return;
     }
-    if(getPeerList().isEmpty()){
+    if(getUdpClientList().isEmpty()){
         BUG << "fail: pList.isEmpty()";
         return;
     }
-    QStringList curPeerList = getPeerList();
+    QStringList curPeerList = getUdpClientList();
     if(curPeerList.count() == 1 && curPeerList.first() == GETADDR(getPubkey())){
         BUG << "fail: curPeerList.count() == 1 && ==" << GETADDR(getPubkey());
         return;
