@@ -1793,28 +1793,33 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
 void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, QString pData){
     BUG << pContract << pAddress;
     if(!hasUdpClientList(pAddress)){
+        BUG << "!hasUdpClientList(pAddress)";
         return;
     }
     onnBlock curBlock = createBlock(pData.toLatin1());
     if(curBlock.blockIndex.isEmpty()){
+        BUG << "curBlock.blockIndex.isEmpty()";
         return;
     }
     if(!hasBlock(pContract.toLatin1())){
         //emit doRequireBlockChainData(pContract,curBlock.blockMaker,0,curBlock.blockIndex);
+        BUG << "!hasBlock(pContract.toLatin1())";
         return;
     }
     onnBlock localBlock = getBlock(pContract);
     if(curBlock.blockIndex.toLongLong()<=localBlock.blockIndex.toLongLong()){
+        BUG << "curBlock.blockIndex.toLongLong()<=localBlock.blockIndex.toLongLong()" << curBlock.blockIndex << localBlock.blockIndex;
         return;
     }else if(curBlock.blockIndex.toLongLong()==localBlock.blockIndex.toLongLong()+1){
         emit doBlockOld(pData.toLatin1());
         return;
-    }
+    }/*
     if(onnBlackList.contains(pAddress)){
+        BUG << "onnBlackList.contains(pAddress)";
         return;
-    }
+    }*/
     if(!hasSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request")){
-        BUG << "doRequireBlockChainData";
+        BUG << "doRequireBlockChainData" << localBlock.blockIndex.toLongLong()+1 << curBlock.blockIndex;
         emit doRequireBlockChainData(pContract,pAddress,QString::number(localBlock.blockIndex.toLongLong()+1),curBlock.blockIndex);
         setSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request",QString::number(localBlock.blockIndex.toLongLong()+1).toLatin1(),curBlock.blockIndex);
     }
@@ -1853,7 +1858,7 @@ void onnObject::onRequireBlockChainData(QString pContract, QString nodeAddress, 
         curSize += curVar.count();
         curArray.append(QString(curVar));
     }
-    BUG << "doSendBlockChainData" << curArray.size();
+    BUG << "doSendBlockChainData" << curArray.size() << start << end;
     onnBlock curBlock = createBlock(curVar);
     curDocument.setArray(curArray);
     emit doSendBlockChainData(pContract,nodeAddress,curDocument.toJson());
@@ -1861,6 +1866,7 @@ void onnObject::onRequireBlockChainData(QString pContract, QString nodeAddress, 
         setSyncQueue(pContract.toLatin1(),nodeAddress.toLatin1(),"response",curBlock.blockIndex,end.toLatin1());
     }
     if(!updSyncQueueIndex(pContract.toLatin1(),nodeAddress.toLatin1(),"response",curBlock.blockIndex)){
+        BUG << "rmSyncQueue response" <<  pContract;
         rmSyncQueue(pContract.toLatin1(),nodeAddress.toLatin1(),"response");
     }
 }
@@ -1880,6 +1886,7 @@ void onnObject::onSendBlockChainData(QString pContract, QString pAddress, QStrin
     }
     if(hasSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request")){
         if(!updSyncQueueIndex(pContract.toLatin1(),pAddress.toLatin1(),"request",curBlock.blockIndex)){
+            BUG << "rmSyncQueue request" <<  pContract;
             rmSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request");
         }
     }
@@ -1961,6 +1968,8 @@ void onnObject::onTimeout(){
     for(auto cur:curRemove){
         rmSyncQueue(cur.blockContract,cur.blockAddress,"request");
     }
+    if(curRemove.count()>0)
+        BUG << "curRemove Sync request =" << curRemove.count();
     curRemove.clear();
     QList<onnSyncQueue> curSyncQueue;
     for(auto cur=onnSyncResponse.begin();cur!=onnSyncResponse.end();cur++){
@@ -1994,6 +2003,8 @@ void onnObject::onTimeout(){
     for(auto cur:curSyncQueue){
         rmSyncQueue(cur.blockContract,cur.blockAddress,"response");
     }
+    if(curSyncQueue.count()>0)
+        BUG << "curSyncQueue Sync response =" << curSyncQueue.count();
     if(!getBossAddressList().contains(GETADDR(getPubkey()))){
         return;
     }
