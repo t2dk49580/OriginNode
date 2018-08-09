@@ -15,6 +15,8 @@ signals:
 
 public slots:
     void onStart();
+    void onBroadcastAppNew(QByteArray);
+    void onBroadcastAppOld(QByteArray);
 };
 
 #endif // ONNWEBSOCKETD_H

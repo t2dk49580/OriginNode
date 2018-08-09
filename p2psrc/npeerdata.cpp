@@ -48,7 +48,7 @@ void NPeerData::Pong()
     lastUpdateTime = steady_clock::now();
     duration<qint64,std::nano> difT = lastUpdateTime - pingTime;
     ping = difT.count();
-    qDebug()<<"ping:"<<id<<(float)ping/1000000.0f<<"ms";
+    //qDebug()<<"ping:"<<id<<(float)ping/1000000.0f<<"ms";
 }
 
 bool NPeerData::CheckAlive()

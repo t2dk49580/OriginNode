@@ -216,9 +216,6 @@ public slots:
 
     void onBlockOldFinish();
 
-    void onBroadcastAppOld(QByteArray);
-    void onBroadcastAppNew(QByteArray);
-
     void onUdpdPeer(QStringList,QStringList,QStringList);
     void onBroadcastBlockChainLevel(QString, QString, QString);
     void onRequireBlockChainData(QString, QString, QString, QString);

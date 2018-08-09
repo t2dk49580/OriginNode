@@ -28,7 +28,9 @@ void onnSystem::onStartFinish(){
     }
     CONN(blockHttpd,SIGNAL(doBlockNew(QByteArray)),blockChecker,SLOT(onBlockNew(QByteArray)));
 
-    CONN(blockContract,SIGNAL(doBroadcastAppNew(QByteArray)),blockWebsocketd,SLOT(onBroadcastAppNew(QByteArray)));
+    if(!getArgument("-ws").isEmpty()){
+        CONN(blockContract,SIGNAL(doBroadcastAppNew(QByteArray)),blockWebsocketd,SLOT(onBroadcastAppNew(QByteArray)));
+    }
     CONN(blockContract,SIGNAL(doSendBlockChainData(QString,QString,QString)),getNetSync(),SLOT(onSendBlockChainData(QString,QString,QString)));
     CONN(blockContract,SIGNAL(doSetBossList(QByteArrayList)),getNetSync(),SLOT(onGetBossAddr(QByteArrayList)));
     CONN(blockContract,SIGNAL(doCustomBroadcast(QString,QString,QString)),getNetSync(),SLOT(onOnnBroadcast(QString,QString,QString)));

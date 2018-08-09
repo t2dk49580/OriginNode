@@ -15,6 +15,7 @@ gTotal   = 10000
 gQueue   = {}
 gTotal   = 10000000
 gTick    = {}
+gPlayerNum = 0
 
 function _setUser(pUser)
     gUser = pUser
@@ -22,6 +23,7 @@ end
 
 function init()
     gOwner = gUser
+    return 'ok'
 end
 
 function getIcon()
@@ -96,6 +98,9 @@ function timeout()
     --if gUser ~= gOwner then
     --    return 'fail'
     --end
+    if gPlayerNum < gPlayerMax then
+        return 'fail'
+    end
     gTimeout = gTimeout+1
     local curQueue = _clone(gQueue)
     gQueue = {}
@@ -112,11 +117,12 @@ function setPlayerMax(pMax)
 end
 
 function joinGame()
-    if #gPlayer >= 2 then
+    if gPlayerNum >= gPlayerMax then
         return 'fail'
     end
+    gPlayerNum = gPlayerNum+1
     table.insert(gPlayer,gUser)
-    if #gPlayer >= 2 then
+    if #gPlayer >= gPlayerMax then
         return _getResult('*','startGame',true,gPlayer)
     else
         return _getResult('*','joinGame',true,gUser)
@@ -130,30 +136,37 @@ function play(pData)
 end
 
 function getTick(pIndex)
-    if tonumber(pIndex) > #gTick then
+    if tonumber(pIndex) > #gTick+1 then
         return 'null'
     end
-    return json.encode(gTick[tonumber(pIndex)])
+    local curResult = {}
+    curResult['index'] = tonumber(pIndex)
+    curResult['data']  = gTick[tonumber(pIndex)]
+    curResult['method']  = 'getTick'
+    return json.encode(curResult)
 end
 
 function getStat()
-    if #gPlayer < gPlayerMax then
+    if gPlayerNum < gPlayerMax then
         return 'null'
     end
-    return json.encode(gPlayer)
+    local curResult = {}
+    curResult['data']  = gPlayer
+    curResult['method']  = 'getStat'
+    return json.encode(curResult)
 end
 
 function closeGame()
-    gPlayer = 0
     gPlayer = {}
     gTimeout = 0
     gQueue = {}
     gTick = {}
+    gPlayerNum = 0
     return _getResult(gUser,'closeGame',true,0)
 end
 
 _setUser('root')
-init()
+print(init())
 _setUser('user1')
 print(joinGame())
 
@@ -163,11 +176,15 @@ print(joinGame())
 print(getStat())
 
 _setUser('user1')
-print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
+--print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('user2')
-print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
+--print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('root')
 print(timeout())
 print(getTick('1'))
+print(gPlayerNum)
+closeGame()
+print(gPlayerNum)
+print(getStat())

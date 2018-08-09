@@ -26,6 +26,7 @@ int onnSyncResponseCount = 0;
 QStringList onnClientList;
 QMultiHash<QByteArray,QByteArray> onnChangeBossData;
 QStringList onnBlackList;
+QMutex onnLock;
 
 onnObject::onnObject(){
     flagStart = false;
@@ -301,6 +302,10 @@ QByteArray onnObject::doDeploy(QString pContract,QString pCode,QString pArg){
     return block.toLatin1();
 }
 QByteArray onnObject::doHandlerGet(QByteArray pData){
+    if(pData.contains("$")){
+        pData.remove(0,1);
+        return doMethodGet(pData);
+    }
     if(pData.left(5) == "/help" || pData == "/favicon.ico"){
         QStringList helpInfo;
         helpInfo.append("/help");
@@ -503,11 +508,13 @@ QString onnObject::doGetRandom(int pMax){
     return result;
 }
 bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+    onnLock.lock();
     lua_getglobal(luaInterface, "_setUser");
     lua_pushstring(luaInterface, pkey.toLatin1().data());
     if(lua_pcall(luaInterface, 1, 1, 0) != 0){
         BUG << "error _setUser" << lua_tostring(luaInterface,-1);
         ret = "error lua_pcall _setUser";
+        onnLock.unlock();
         return false;
     }
     lua_settop(luaInterface,0);
@@ -530,6 +537,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     if(lua_pcall(luaInterface, arglen, 1, 0) != 0){
         BUG << "error lua_pcall" << pFunction << pArg << lua_tostring(luaInterface,-1);;
         ret = "error lua_pcall function";
+        onnLock.unlock();
         return false;
     }
     if(lua_isstring(luaInterface, 1)){
@@ -542,12 +550,14 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
         ret = "null";
     }
     lua_settop(luaInterface,0);
+    onnLock.unlock();
     if(ret.left(4) == "fail")
         return false;
     return true;
 }
 
 QByteArray onnObject::doMethodGet(QByteArray pMsg){
+    BUG << pMsg;
     QList<QByteArray> msgList = pMsg.split('$');
     if(msgList.count()<4){
         QString lc = "msgList.count()<4";
@@ -1675,12 +1685,6 @@ void onnObject::onSaveBlock(QByteArray,QByteArray){}
 
 void onnObject::onBlockOldFinish(){}
 
-void onnObject::onBroadcastAppOld(QByteArray){}
-void onnObject::onBroadcastAppNew(QByteArray pData){
-    BUG;
-    getWebsocketd()->getDefaultGroup<SERVER>().broadcast(pData,pData.count(),OpCode::TEXT);
-}
-
 void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNew){
     if(flagStart == false){
         BUG << "fail: flagStart == false";
@@ -1791,7 +1795,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
     */
 }
 void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, QString pData){
-    BUG << pContract << pAddress;
+    //BUG << pContract << pAddress;
     if(!hasUdpClientList(pAddress)){
         BUG << "!hasUdpClientList(pAddress)";
         return;
@@ -1943,7 +1947,7 @@ void onnObject::onTimeout(){
     }
 
     for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
-        BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
+        //BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
         emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
     }
     QList<onnSyncQueue> curRemove;

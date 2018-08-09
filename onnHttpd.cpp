@@ -42,6 +42,8 @@ void onnHttpd::onStart(){
             con.clearData();
             //emit doBlockNew(msg);
             QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
+        }else{
+            cout << "httpd unknow method" << con.getRequest().method << endl;
         }
         resp.body = handy::Slice(GETSHA256(msg));
         con.sendResponse(resp);
