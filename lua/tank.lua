@@ -14,6 +14,7 @@ gBalance = {}
 gTotal   = 10000
 gQueue   = {}
 gTotal   = 10000000
+gTick    = {}
 
 function _setUser(pUser)
     gUser = pUser
@@ -95,15 +96,11 @@ function timeout()
     --if gUser ~= gOwner then
     --    return 'fail'
     --end
-    if gTimeout >= 300*16 then
-        gTimeout = 0
-        gPlayer  = {}
-        return _getResult('*','gameover',true,0)
-    end
     gTimeout = gTimeout+1
     local curQueue = _clone(gQueue)
     gQueue = {}
-    return _getResult('*','timeout',true,curQueue)
+    table.insert( gTick, curQueue )
+    return 'fail'
 end
 
 function setPlayerMax(pMax)
@@ -128,7 +125,22 @@ end
 
 function play(pData)
     table.insert(gQueue, pData)
-    return _getResult(gUser,'play',true,pData)
+    --return _getResult(gUser,'play',true,pData)
+    return 'fail'
+end
+
+function getTick(pIndex)
+    if tonumber(pIndex) > #gTick then
+        return 'null'
+    end
+    return json.encode(gTick[tonumber(pIndex)])
+end
+
+function getStat()
+    if #gPlayer < gPlayerMax then
+        return 'null'
+    end
+    return json.encode(gPlayer)
 end
 
 function closeGame()
@@ -136,6 +148,7 @@ function closeGame()
     gPlayer = {}
     gTimeout = 0
     gQueue = {}
+    gTick = {}
     return _getResult(gUser,'closeGame',true,0)
 end
 
@@ -143,8 +156,11 @@ _setUser('root')
 init()
 _setUser('user1')
 print(joinGame())
+
 _setUser('user2')
 print(joinGame())
+
+print(getStat())
 
 _setUser('user1')
 print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
@@ -154,3 +170,4 @@ print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.60000002384185
 
 _setUser('root')
 print(timeout())
+print(getTick('1'))
