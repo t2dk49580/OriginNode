@@ -64,6 +64,7 @@ public:
 public slots:
     void onTimeout(){
         HttpRequest::doMethodSet(prikey,pubkey,QString("http://")+tgtIP,tgtCT,"timeout","null");
+        HttpRequest::doMethodSet(prikey,pubkey,QString("http://")+tgtIP,tgtCT,"play",QByteArray("test").toHex());
     }
 };
 

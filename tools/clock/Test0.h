@@ -14,7 +14,7 @@ public:
 
 public slots:
     void onTimeout(){
-        /*
+/*
         helpInfo.append("/help");
         helpInfo.append("/list");
         helpInfo.append("/last + 0");
@@ -24,14 +24,9 @@ public slots:
         helpInfo.append("/boss + pub");
         helpInfo.append("/balance + contract,pub");
         helpInfo.append("/address");
+*/
+        BUG << HttpRequest::qtGet("http://127.0.0.1:3000/TANK10$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
 
-        HttpRequest::qtGet("http://127.0.0.1:4000/list");
-        HttpRequest::qtGet("http://127.0.0.1:4000/last0");
-        HttpRequest::qtGet("http://127.0.0.1:4000/block0-2");
-        HttpRequest::qtGet("http://127.0.0.1:4000/peers");
-        HttpRequest::qtGet("http://127.0.0.1:4000/maker0");
-        HttpRequest::qtGet("http://127.0.0.1:4000/address");
-        */
     }
 };
 
