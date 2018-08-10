@@ -130,6 +130,7 @@ function joinGame()
 end
 
 function play(pData)
+    print('play',#gQueue,pData)
     table.insert(gQueue, pData)
     --return _getResult(gUser,'play',true,pData)
     return 'fail'

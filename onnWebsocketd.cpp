@@ -25,7 +25,7 @@ void onnWebsocketd::onStart(){
 
 void onnWebsocketd::onBroadcastAppNew(QByteArray){
     //BUG;
-    //getWebsocketd()->getDefaultGroup<SERVER>().broadcast(pData,pData.count(),OpCode::TEXT);
+    getWebsocketd()->getDefaultGroup<SERVER>().broadcast(pData,pData.count(),OpCode::TEXT);
 }
 
 void onnWebsocketd::onBroadcastAppOld(QByteArray){
