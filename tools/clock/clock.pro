@@ -24,7 +24,8 @@ HEADERS += \
     HttpRequest.h \
     Password.h \
     emcc/uECC.h \
-    Test0.h
+    Test0.h \
+    NetRequest.h
 
 DISTFILES += \
     emcc/abtest

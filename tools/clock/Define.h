@@ -9,6 +9,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDateTime>
+#include <iostream>
 #include <QCryptographicHash>
 #include <QUrlQuery>
 
