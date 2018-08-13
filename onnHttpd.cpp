@@ -1,8 +1,7 @@
 #include "onnHttpd.h"
 #include <handy/handy.h>
 
-onnHttpd::onnHttpd()
-{
+onnHttpd::onnHttpd(){
 
 }
 
@@ -10,16 +9,12 @@ void onnHttpd::runBlockNew(QByteArray pData){
     onBlockNew(pData);
 }
 
-void onnHttpd::onStart(){
-    std::cout << "httpd start" << std::endl;
+void onnHttpd::runHttpd(int pPort){
     int threads = 100;
     handy::setloglevel("FATAL");
     handy::MultiBase base(threads);
     handy::HttpServer sample(&base);
-    int curPort = 3000;
-    if(!getArgument("-p").isEmpty()){
-        curPort = getArgument("-p").toInt();
-    }
+    int curPort = pPort;
     int r = sample.bind("", curPort);
     if(r){cout<<"runHttp failed:"<<curPort<<endl;exit(-1);}
     sample.onDefault([&](const handy::HttpConnPtr& con){
@@ -49,8 +44,16 @@ void onnHttpd::onStart(){
         con.sendResponse(resp);
         con->close();
     });
-    flagStart = true;
-    emit doStartFinish();
     handy::Signal::signal(SIGINT, [&]{base.exit();});
     base.loop();
+}
+
+void onnHttpd::onStart(){
+    std::cout << "httpd start" << std::endl;
+    if(!getArgument("-p").isEmpty()){
+        int curPort = getArgument("-p").toInt();
+        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,curPort);
+    }
+    flagStart = true;
+    emit doStartFinish();
 }

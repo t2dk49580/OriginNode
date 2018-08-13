@@ -37,6 +37,7 @@ struct onnKey {
     QByteArray appkey;
     QByteArray pubkey;
     QByteArray prikey;
+    QByteArray address;
 };
 
 struct onnBlock {

@@ -26,6 +26,7 @@ public slots:
                 this, SLOT(onFinish(QNetworkReply*)),Qt::QueuedConnection);
     }
     void onGet(QString pUrl,QString pData){
+        cout << (pUrl+"/"+pData).toLatin1().data() << endl;
         mNetGet->get(QNetworkRequest(pUrl+"/"+pData));
     }
     void onPost(QString pUrl,QString pData){
@@ -34,8 +35,8 @@ public slots:
         mNetPost->post(qnr,pData.toLatin1());
     }
     void onFinish(QNetworkReply *pReply){
-        cout << QTime::currentTime().toString("ss zzz").toStdString() << endl;
         QByteArray data = pReply->readAll();
+        cout << QTime::currentTime().toString("ss zzz").toStdString() << " " << data.data() << endl;
         emit doRsponse(data);
         pReply->deleteLater();
     }

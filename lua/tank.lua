@@ -16,6 +16,7 @@ gQueue   = {}
 gTotal   = 10000000
 gTick    = {}
 gPlayerNum = 0
+gMsg     = {}
 
 function _setUser(pUser)
     gUser = pUser
@@ -101,6 +102,7 @@ function timeout()
     if gPlayerNum < gPlayerMax then
         return 'fail'
     end
+    print('timeout')
     gTimeout = gTimeout+1
     local curQueue = _clone(gQueue)
     gQueue = {}
@@ -137,23 +139,23 @@ function play(pData)
 end
 
 function getTick(pIndex)
-    if tonumber(pIndex) > #gTick+1 then
-        return 'null'
-    end
     local curResult = {}
     curResult['index'] = tonumber(pIndex)
-    curResult['data']  = gTick[tonumber(pIndex)]
     curResult['method']  = 'getTick'
+    if tonumber(pIndex) >= #gTick+1 then
+        return json.encode(curResult)
+    end
+    curResult['data']  = gTick[tonumber(pIndex)]
     return json.encode(curResult)
 end
 
 function getStat()
-    if gPlayerNum < gPlayerMax then
-        return 'null'
-    end
     local curResult = {}
-    curResult['data']  = gPlayer
     curResult['method']  = 'getStat'
+    if gPlayerNum < gPlayerMax then
+        return json.encode(curResult)
+    end
+    curResult['data']  = gPlayer
     return json.encode(curResult)
 end
 
@@ -177,15 +179,17 @@ print(joinGame())
 print(getStat())
 
 _setUser('user1')
---print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
+print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('user2')
---print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
+print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('root')
 print(timeout())
 print(getTick('1'))
+print(getTick('10'))
 print(gPlayerNum)
 closeGame()
 print(gPlayerNum)
 print(getStat())
+print(getTick('1'))

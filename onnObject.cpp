@@ -199,6 +199,7 @@ void onnObject::initKey(){
     }else{
         makeKey(GETSHA256(curAppkey.c_str()));
     }
+    onnObjectKey.address = GETADDR(onnObjectKey.pubkey);
 }
 
 bool onnObject::hasAppkey(){
@@ -342,7 +343,7 @@ QByteArray onnObject::doHandlerGet(QByteArray pData){
         return QByteArray::number(getContractBalance(pData.remove(0,8).split(',').first(),pData.remove(0,8).split(',').last()));
     }
     if(pData.left(8) == "/address"){
-        return GETADDR(getPubkey());
+        return onnObjectKey.address;
     }
     pData.remove(0,1);
     return doMethodGet(pData);
@@ -414,7 +415,11 @@ bool onnObject::hasUdpClientList(QString pAddress){
     return onnClientList.contains(pAddress);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////
-void onnObject::initDatabase(QString pFile){
+void onnObject::initDatabase(){
+    QString pFile = "db";
+    if(!getArgument("-d").isEmpty()){
+        pFile = getArgument("-d");
+    }
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status status = leveldb::DB::Open(options, pFile.toLatin1().data(), &onnObjectDB);
@@ -653,7 +658,7 @@ bool onnObject::checkBlockNewIdentity(QString pName, QByteArray pData){
     if(curBoss.isEmpty()){
         return false;
     }
-    if(curBoss != GETADDR(getPubkey())){
+    if(curBoss != onnObjectKey.address){
         BUG << "send to boss" << pName << getBoss(pName.toLatin1());
         //emit doSendBlockChainData(pName,curIdentityPubkey,pData);
         emit doCustomRequire(pName,getBoss(pName.toLatin1()),"newblock",pData);
@@ -923,7 +928,7 @@ QByteArray onnObject::getOnnBossOwner(QByteArray pBoss){
     if(!hasContract(pBoss)){
         return "";
     }
-    if(_doMethod(getContract(pBoss),"_getOwner","null",GETADDR(getPubkey()),result)){
+    if(_doMethod(getContract(pBoss),"_getOwner","null",onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "";
@@ -933,7 +938,7 @@ QByteArray onnObject::getOnnBossTotal(QByteArray pSymbol){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"_getTotal","null",GETADDR(getPubkey()),result)){
+    if(_doMethod(getContract(pSymbol),"_getTotal","null",onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "fail";
@@ -943,7 +948,7 @@ QByteArray onnObject::getOnnBossMaker(QByteArray pSymbol){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"getBossMaker",pSymbol,GETADDR(getPubkey()),result)){
+    if(_doMethod(getContract(pSymbol),"getBossMaker",pSymbol,onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "fail";
@@ -953,7 +958,7 @@ QByteArray onnObject::setOnnBossMaker(QByteArray pSymbol, QByteArray pAddress){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"setBossMaker",pSymbol+"?"+pAddress,GETADDR(getPubkey()),result)){
+    if(_doMethod(getContract(pSymbol),"setBossMaker",pSymbol+"?"+pAddress,onnObjectKey.address,result)){
         setBoss(pSymbol,pAddress);
         return result.toLatin1();
     }
@@ -961,7 +966,7 @@ QByteArray onnObject::setOnnBossMaker(QByteArray pSymbol, QByteArray pAddress){
 }
 QString onnObject::setNextBoss(QString pArg){
     QString curResult;
-    _doMethod(getContract("0"),"_setNextBoss",pArg,GETADDR(getPubkey()),curResult);
+    _doMethod(getContract("0"),"_setNextBoss",pArg,onnObjectKey.address,curResult);
     if(curResult.isEmpty() || curResult.left(4) == "fail"){
         BUG << curResult;
         curResult = "fail";
@@ -979,7 +984,7 @@ QString onnObject::setDeployBoss(QString pArg, QString pKey){
 }
 QString onnObject::setPeers(){
     QString curResult;
-    _doMethod(getContract("0"),"_setPeers",getPeerList().join(","),GETADDR(getPubkey()),curResult);
+    _doMethod(getContract("0"),"_setPeers",getPeerList().join(","),onnObjectKey.address,curResult);
     return curResult;
 }
 QByteArray onnObject::doOnnTransfer(QByteArray pSender,QByteArray pRecver,QByteArray pNumber){
@@ -1099,26 +1104,7 @@ void onnObject::onBlockOld(QByteArray pData){
         BUG << "msg fail: maker verify fail" << pData;
         return;
     }
-/*
-    if(curBlock.blockIndex.toLongLong()<=getBlock(name).blockIndex.toLongLong()){
-        BUG << "msg fail: curBlock.blockIndex<getBlock(name).blockIndex" << pData;
-        return;
-    }else if(curBlock.blockIndex.toLongLong()>getBlock(name).blockIndex.toLongLong()+1){
-        BUG << "msg fail: curBlock.blockIndex>getBlock(name).blockIndex+1" << pData;
-        return;
-    }
 
-    if(curBlock.blockHashPrev != getBlock(name).blockHash){
-        BUG << "msg fail: curBlock.blockHashPrev != getBlock(name).blockHash" << pData;
-        return;
-    }
-
-    QByteArray curIdentityPubkey = GETADDR(getIdentity(name).toLatin1());
-    if(curIdentityPubkey != GETADDR(maker)){
-        BUG << "msg fail: curIdentityPubkey != GETADDR(maker)" << name;
-        return;
-    }
-*/
     if(type == "deploy"){
         if(hasBlock(name)){
             BUG << "bad deploy: contract exist" << name;
@@ -1142,6 +1128,9 @@ void onnObject::onBlockOld(QByteArray pData){
         }
         emit doPeerOld(pData);
     }
+}
+void onnObject::onDestroyOld(QByteArray pData){
+
 }
 void onnObject::onDeployOld(QByteArray pData){
     onnBlock curBlock = createBlock(pData);
@@ -1191,7 +1180,7 @@ void onnObject::onDeployOld(QByteArray pData){
         return;
     }
     QString curTotal;
-    if(_doMethod(luaInterface,"_getTotal","null",GETADDR(getPubkey()),result)){
+    if(_doMethod(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
         curTotal = "0";
@@ -1449,7 +1438,7 @@ void onnObject::onBlockNew(QByteArray pData){
     QByteArray arg = QByteArray::fromHex(listData.at(4));
 /*
     QByteArray curIdentityPubkey = GETADDR(getIdentity(name).toLatin1());
-    if(curIdentityPubkey != GETADDR(getPubkey())){
+    if(curIdentityPubkey != onnObjectKey.address){
         BUG << "send to boss" << name;
         emit doSendBlockChainData(name,curIdentityPubkey,pData);
         return;
@@ -1478,8 +1467,34 @@ void onnObject::onBlockNew(QByteArray pData){
             return;
         }
         emit doPeerNew(pData);
+    }else if(type == "destroy"){
+        if(!hasContract(name)){
+            BUG << "bad destroy: contract not exist" << name;
+            return;
+        }
     }else{
         BUG << "Unknow" << name << type;
+    }
+}
+void onnObject::onDestroyNew(QByteArray pData){
+    QByteArray curHash = GETSHA256(pData);
+    if(getDatabaseBlock(curHash) != "null"){
+        BUG << "bad destroy: hash data exist" << curHash;
+        return;
+    }
+    QList<QByteArray> pList = pData.split('$');
+    QString name = pList.at(2);
+    QString codeHex = pList.at(3);
+    QString arg = QByteArray::fromHex(pList.at(4));
+    QString key = GETADDR(pList.at(1));
+    if(!hasContract(name.toLatin1())){
+        BUG << "bad destroy: contract not exist" << name;
+        return;
+    }
+    if(getBoss("0") != onnObjectKey.address){
+        BUG << "send to boss" << name << getBoss("0");
+        emit doCustomRequire(name,getBoss("0"),"newblock",pData);
+        return;
     }
 }
 void onnObject::onDeployNew(QByteArray pData){
@@ -1501,7 +1516,7 @@ void onnObject::onDeployNew(QByteArray pData){
         BUG << "bad deploy: contract exist" << name;
         return;
     }
-    if(getBoss("0") != GETADDR(getPubkey())){
+    if(getBoss("0") != onnObjectKey.address){
         BUG << "send to boss" << name << getBoss("0");
         emit doCustomRequire(name,getBoss("0"),"newblock",pData);
         return;
@@ -1549,10 +1564,10 @@ void onnObject::onDeployNew(QByteArray pData){
     if(!curPeerList.isEmpty())
         setBoss(name.toLatin1(),curPeerList.at(doGetRandom(curPeerList.count()).toInt()-1).toLatin1());
     else
-        setBoss(name.toLatin1(),GETADDR(getPubkey()));
+        setBoss(name.toLatin1(),onnObjectKey.address);
     */
     QString curTotal;
-    if(_doMethod(luaInterface,"_getTotal","null",GETADDR(getPubkey()),result)){
+    if(_doMethod(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
         curTotal = "0";
@@ -1694,7 +1709,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
             BUG << "fail: pList.count()==0";
             return;
         }
-        pList.append(GETADDR(getPubkey()));
+        pList.append(onnObjectKey.address);
         emit doSetBossList(getBossAddressList());
     }
     if(!pLose.isEmpty()){
@@ -1708,7 +1723,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
     BUG << "new " << pNew;
     //for test disable
     if(!pList.isEmpty() && pList != getPeerList()){
-        if(getBoss("0") == GETADDR(getPubkey())){
+        if(getBoss("0") == onnObjectKey.address){
             QByteArray curData;
             if(pLose.isEmpty())
                 curData = doCustomSet("peer","0","peer",(pList.join(",")).toLatin1().toHex());
@@ -1778,7 +1793,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
     for(auto cur:curSyncQueue){
         rmSyncQueue(cur.blockContract,cur.blockAddress,"response");
     }
-    if(!getBossAddressList().contains(GETADDR(getPubkey()))){
+    if(!getBossAddressList().contains(onnObjectKey.address)){
         return;
     }
     if(getPeerList().isEmpty()){
@@ -1941,8 +1956,8 @@ void onnObject::onTimeout(){
         return;
     }
     QStringList curPeerList = getUdpClientList();
-    if(curPeerList.count() == 1 && curPeerList.first() == GETADDR(getPubkey())){
-        BUG << "fail: curPeerList.count() == 1 && ==" << GETADDR(getPubkey());
+    if(curPeerList.count() == 1 && curPeerList.first() == onnObjectKey.address){
+        BUG << "fail: curPeerList.count() == 1 && ==" << onnObjectKey.address;
         return;
     }
 
@@ -2009,7 +2024,7 @@ void onnObject::onTimeout(){
     }
     if(curSyncQueue.count()>0)
         BUG << "curSyncQueue Sync response =" << curSyncQueue.count();
-    if(!getBossAddressList().contains(GETADDR(getPubkey()))){
+    if(!getBossAddressList().contains(onnObjectKey.address)){
         return;
     }
     if(getPeerList().isEmpty()){

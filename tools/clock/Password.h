@@ -64,7 +64,8 @@ signals:
     void doPost(QString,QString);
 public slots:
     void onTimeout(){
-        //emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK10","timeout","null"));
+        BUG << "post timeout";
+        emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK12","timeout","null"));
         //emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK10","play",QByteArray("test").toHex()));
 
         //HttpRequest::doMethodSet(prikey,pubkey,QString("http://")+tgtIP,tgtCT,"timeout","null");

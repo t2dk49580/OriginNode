@@ -19,6 +19,7 @@ gSeed    = 0
 gOrder   = {}
 gOrderID = '1'
 gIdentity= {}
+gDestroy = {}
 
 function _setUser(pUser)
     gUser = pUser
@@ -50,6 +51,19 @@ end
 
 function _getTotal()
     return gTotal
+end
+
+function _destroy(pSymbol)
+    if gUser == gBoss[pSymbol]['owner'] then
+        gIdentity[gBoss[pSymbol]['maker']] = nil
+        return "ok"
+    end
+    if gDestroy[pSymbol] > 0 then
+        return 'fail'
+    end
+    if gFreezen[gBoss[pSymbol]['owner']] > 1 then
+        return 'fail'
+    end
 end
 
 function _getNextBoss(pBalance)

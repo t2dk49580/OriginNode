@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(psd,SIGNAL(doPost(QString,QString)),n,SLOT(onPost(QString,QString)),Qt::QueuedConnection);
     QObject::connect(tt0,SIGNAL(doGet(QString,QString)),n,SLOT(onGet(QString,QString)),Qt::QueuedConnection);
+    QObject::connect(tt0,SIGNAL(doTimeout()),psd,SLOT(onTimeout()),Qt::QueuedConnection);
 
     QObject::connect(n,SIGNAL(doRsponse(QString)),tt0,SLOT(onTimeout(QString)),Qt::QueuedConnection);
 

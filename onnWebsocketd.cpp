@@ -23,7 +23,7 @@ void onnWebsocketd::onStart(){
     emit doStartFinish();
 }
 
-void onnWebsocketd::onBroadcastAppNew(QByteArray){
+void onnWebsocketd::onBroadcastAppNew(QByteArray pData){
     //BUG;
     getWebsocketd()->getDefaultGroup<SERVER>().broadcast(pData,pData.count(),OpCode::TEXT);
 }

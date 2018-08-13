@@ -10,6 +10,7 @@ class onnHttpd : public onnObject
 public:
     explicit onnHttpd();
     void runBlockNew(QByteArray);
+    void runHttpd(int);
 
 signals:
 

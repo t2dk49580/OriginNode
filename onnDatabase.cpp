@@ -1,7 +1,6 @@
 #include "onnDatabase.h"
 
-onnDatabase::onnDatabase()
-{
+onnDatabase::onnDatabase(){
 
 }
 

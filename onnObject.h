@@ -71,7 +71,7 @@ public:
     static QStringList getUdpClientList();
     static bool hasUdpClientList(QString);
 
-    static void initDatabase(QString);
+    static void initDatabase();
     static QByteArray getDatabaseBlock(QByteArray);
     static bool setDatabaseBlock(QByteArray,QByteArray);
 
@@ -157,6 +157,7 @@ signals:
     void doDeployOld(QByteArray);
     void doMethodOld(QByteArray);
     void doPeerOld(QByteArray);
+    void doDestroyOld(QByteArray);
     void doPeerOldOK(QByteArray);
     void doDeployOldOK(QByteArray,QByteArray);
     void doMethodOldOK(QByteArray,QByteArray);
@@ -165,6 +166,7 @@ signals:
     void doDeployNew(QByteArray);
     void doMethodNew(QByteArray);
     void doPeerNew(QByteArray);
+    void doDestroyNew(QByteArray);
     void doPeerNewOK(QByteArray);
     void doDeployNewOK(QByteArray,QByteArray);
     void doMethodNewOK(QByteArray,QByteArray);
@@ -200,6 +202,7 @@ public slots:
     void onDeployOld(QByteArray);
     void onMethodOld(QByteArray);
     void onPeerOld(QByteArray);
+    void onDestroyOld(QByteArray);
     void onPeerOldOK(QByteArray);
     void onDeployOldOK(QByteArray,QByteArray);
     void onMethodOldOK(QByteArray,QByteArray);
@@ -208,6 +211,7 @@ public slots:
     void onDeployNew(QByteArray);
     void onMethodNew(QByteArray);
     void onPeerNew(QByteArray);
+    void onDestroyNew(QByteArray);
     void onPeerNewOK(QByteArray);
     void onDeployNewOK(QByteArray,QByteArray);
     void onMethodNewOK(QByteArray,QByteArray);

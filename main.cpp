@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     obj->initArgv(argc,argv);
     obj->initKey();
     obj->initBoss();
-    obj->initDatabase("db");
+    obj->initDatabase();
     obj->initNetSync();
     obj->initWebsocketd();
 

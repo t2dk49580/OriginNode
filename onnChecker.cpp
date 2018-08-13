@@ -1,6 +1,5 @@
 #include "onnChecker.h"
 
-onnChecker::onnChecker()
-{
+onnChecker::onnChecker(){
 
 }
