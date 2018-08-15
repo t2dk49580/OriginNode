@@ -42,6 +42,7 @@ QString NEmcc::Sign(QString data)
 
 bool NEmcc::VerifyMsg(QString pubKey, QString msg, QString sign)
 {
+    qDebug() << __FUNCTION__ << __LINE__ << pubKey;
     auto hashData = Hash256(msg);
     //qDebug()<<"Hash Data:"<<QString(hashData);
     return Verify(pubKey.toLocal8Bit().data(),

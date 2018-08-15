@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 //    BUG << sec;
 //    BUG << msg;
 //    return 0;
+    QString onnVersion = "0.9.1.1";
     obj->initArgv(argc,argv);
     obj->initKey();
     obj->initBoss();

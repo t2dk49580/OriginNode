@@ -137,7 +137,7 @@ void NetSync::RcvP2pMsg(QString signedMsg)
     auto pubKey = jDom["PubKey"].toString();
     auto sign = jDom["Sign"].toString();
     if(!ecDsa.VerifyMsg(pubKey,msg,sign)){
-        //qDebug()<<pubKey<<msg<<sign;
+        qDebug()<<pubKey<<msg<<sign;
         return;
     }
 

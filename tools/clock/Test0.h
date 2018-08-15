@@ -6,6 +6,8 @@
 #include "HttpRequest.h"
 #include <iostream>
 
+extern QStringList argList;
+
 using namespace std;
 
 class Test0 : public QObject{
@@ -20,27 +22,13 @@ signals:
 public slots:
     void onStart(){
         //emit doTimeout();
-        emit doGet("http://47.75.190.195:3000","TANK12$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
+        emit doGet(argList.at(1),argList.at(2)+"$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
     }
     void onTimeout(QString){
-        //QThread::sleep(1);
-        //QThread::msleep(50);
+        if(argList.at(0).toInt()>0)
+            QThread::msleep(argList.at(0).toInt());
         emit doTimeout();
-/*
-        helpInfo.append("/help");
-        helpInfo.append("/list");
-        helpInfo.append("/last + 0");
-        helpInfo.append("/block + 0-0");
-        helpInfo.append("/peers");
-        helpInfo.append("/maker + contract");
-        helpInfo.append("/boss + pub");
-        helpInfo.append("/balance + contract,pub");
-        helpInfo.append("/address");
-*/
-        //BUG << HttpRequest::qtGet("http://127.0.0.1:3000/TANK10$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
-        //cout << QTime::currentTime().toString("ss zzz").toStdString() << endl;
-        emit doGet("http://47.75.190.195:3000","TANK12$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
-        //emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK10","timeout","null"));
+        emit doGet(argList.at(1),argList.at(2)+"$getTick$31$C7F836DC6145EA4A96A67B13EA0B5F2B10DD70544A69BCB565991F3BB5019CC7114EF777CCA2C36DEF0364D2EF733770FA72B389D3C348FDA7D98A7A7A5CF384");
     }
 };
 

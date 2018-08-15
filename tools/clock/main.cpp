@@ -1,11 +1,13 @@
 #include <QCoreApplication>
 #include "QTimer"
 #include <Password.h>
+#include <QHash>
 #include "Test0.h"
 #include "NetRequest.h"
 
 QTimer *gTimer = new QTimer();
 QThread *t[100] = {new QThread(),new QThread(),new QThread(),};
+QStringList argList;
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +21,9 @@ int main(int argc, char *argv[])
         BUG << argv[2];
         BUG << argv[3];
     }
+    argList.append(argv[1]);
+    argList.append(argv[2]);
+    argList.append(argv[3]);
     QCoreApplication a(argc, argv);
     Password *psd = new Password();
     Test0    *tt0 = new Test0();
@@ -45,8 +50,9 @@ int main(int argc, char *argv[])
     //gTimer->start(step);
     //tt0->onTimeout("");
 
+    t[2]->start();
     t[0]->start();
     t[1]->start();
-    t[2]->start();
+
     return a.exec();
 }

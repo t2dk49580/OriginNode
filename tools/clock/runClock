@@ -1,0 +1,7 @@
+#!/bin/bash
+
+STEP="100"
+ADDR="http://47.75.190.195:3000"
+CONT="TANK12"
+
+./clock "$STEP" "$ADDR" "$CONT"

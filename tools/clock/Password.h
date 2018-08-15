@@ -5,6 +5,8 @@
 #include "emcc/uECC.h"
 #include "HttpRequest.h"
 
+extern QStringList argList;
+
 class Password : public QObject{
     Q_OBJECT
 public:
@@ -65,7 +67,7 @@ signals:
 public slots:
     void onTimeout(){
         BUG << "post timeout";
-        emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK12","timeout","null"));
+        emit doPost(argList.at(1),HttpRequest::docmd("method",pubkey,prikey,argList.at(2),"timeout","null"));
         //emit doPost("http://47.75.190.195:3000",HttpRequest::docmd("method",pubkey,prikey,"TANK10","play",QByteArray("test").toHex()));
 
         //HttpRequest::doMethodSet(prikey,pubkey,QString("http://")+tgtIP,tgtCT,"timeout","null");

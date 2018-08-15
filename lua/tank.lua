@@ -99,10 +99,10 @@ function timeout()
     --if gUser ~= gOwner then
     --    return 'fail'
     --end
+    print('timeout')
     if gPlayerNum < gPlayerMax then
         return 'fail'
     end
-    print('timeout')
     gTimeout = gTimeout+1
     local curQueue = _clone(gQueue)
     gQueue = {}
@@ -182,7 +182,7 @@ _setUser('user1')
 print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('user2')
-print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
+print(play('{"ID":"User2","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
 
 _setUser('root')
 print(timeout())

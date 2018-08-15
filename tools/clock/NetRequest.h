@@ -36,7 +36,7 @@ public slots:
     }
     void onFinish(QNetworkReply *pReply){
         QByteArray data = pReply->readAll();
-        cout << QTime::currentTime().toString("ss zzz").toStdString() << " " << data.data() << endl;
+        BUG << QTime::currentTime().toString("ss zzz") << data << endl;
         emit doRsponse(data);
         pReply->deleteLater();
     }
