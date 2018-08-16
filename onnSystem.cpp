@@ -31,22 +31,22 @@ void onnSystem::onStartFinish(){
     if(!getArgument("-ws").isEmpty()){
         CONN(blockContract,SIGNAL(doBroadcastAppNew(QByteArray)),blockWebsocketd,SLOT(onBroadcastAppNew(QByteArray)));
     }
-    CONN(blockContract,SIGNAL(doSendBlockChainData(QString,QString,QString)),getNetSync(),SLOT(onSendBlockChainData(QString,QString,QString)));
+    //CONN(blockContract,SIGNAL(doSendBlockChainData(QString,QString,QString)),getNetSync(),SLOT(onSendBlockChainData(QString,QString,QString)));
     CONN(blockContract,SIGNAL(doSetBossList(QByteArrayList)),getNetSync(),SLOT(onGetBossAddr(QByteArrayList)));
     CONN(blockContract,SIGNAL(doCustomBroadcast(QString,QString,QString)),getNetSync(),SLOT(onOnnBroadcast(QString,QString,QString)));
     CONN(blockContract,SIGNAL(doCustomRequire(QString,QByteArray,QString,QString)),getNetSync(),SLOT(onOnnRequire(QString,QByteArray,QString,QString)));
 
-    CONN(blockUdpd,SIGNAL(doBroadcastBlockChainLevel(QString,QString)),getNetSync(),SLOT(onBroadcastBlockChainLevel(QString,QString)));
-    CONN(blockUdpd,SIGNAL(doRequireBlockChainData(QString,QString,QString,QString)),getNetSync(),SLOT(onRequireBlockChainData(QString,QString,QString,QString)));
-    CONN(blockUdpd,SIGNAL(doSendBlockChainData(QString,QString,QString)),getNetSync(),SLOT(onSendBlockChainData(QString,QString,QString)));
+    //CONN(blockUdpd,SIGNAL(doBroadcastBlockChainLevel(QString,QString)),getNetSync(),SLOT(onBroadcastBlockChainLevel(QString,QString)));
+    //CONN(blockUdpd,SIGNAL(doRequireBlockChainData(QString,QString,QString,QString)),getNetSync(),SLOT(onRequireBlockChainData(QString,QString,QString,QString)));
+    //CONN(blockUdpd,SIGNAL(doSendBlockChainData(QString,QString,QString)),getNetSync(),SLOT(onSendBlockChainData(QString,QString,QString)));
     CONN(blockUdpd,SIGNAL(doSetBossList(QByteArrayList)),getNetSync(),SLOT(onGetBossAddr(QByteArrayList)));
     CONN(blockUdpd,SIGNAL(doCustomBroadcast(QString,QString,QString)),getNetSync(),SLOT(onOnnBroadcast(QString,QString,QString)));
     CONN(blockUdpd,SIGNAL(doCustomRequire(QString,QByteArray,QString,QString)),getNetSync(),SLOT(onOnnRequire(QString,QByteArray,QString,QString)));
     CONN(blockUdpd,SIGNAL(doBlockNew(QByteArray)),blockChecker,SLOT(onBlockNew(QByteArray)));
 
-    CONN(getNetSync(),SIGNAL(doRcvBlockChainData(QString,QString,QString)),blockUdpd,SLOT(onSendBlockChainData(QString,QString,QString)));
-    CONN(getNetSync(),SIGNAL(doRcvBlockChainDataRequire(QString,QString,QString,QString)),blockUdpd,SLOT(onRequireBlockChainData(QString,QString,QString,QString)));
-    CONN(getNetSync(),SIGNAL(doRcvBlockChainLevel(QString,QString,QString)),blockUdpd,SLOT(onBroadcastBlockChainLevel(QString,QString,QString)));
+    //CONN(getNetSync(),SIGNAL(doRcvBlockChainData(QString,QString,QString)),blockUdpd,SLOT(onSendBlockChainData(QString,QString,QString)));
+    //CONN(getNetSync(),SIGNAL(doRcvBlockChainDataRequire(QString,QString,QString,QString)),blockUdpd,SLOT(onRequireBlockChainData(QString,QString,QString,QString)));
+    //CONN(getNetSync(),SIGNAL(doRcvBlockChainLevel(QString,QString,QString)),blockUdpd,SLOT(onBroadcastBlockChainLevel(QString,QString,QString)));
     CONN(getNetSync(),SIGNAL(doUpdatePeerList(QStringList,QStringList,QStringList)),blockUdpd,SLOT(onUdpdPeer(QStringList,QStringList,QStringList)));
     CONN(getNetSync(),SIGNAL(doOnnRequire(QString,QString,QString,QString)),blockUdpd,SLOT(onCustomRequire(QString,QString,QString,QString)));
     /*concurrent*/
