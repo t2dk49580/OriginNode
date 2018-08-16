@@ -14,12 +14,10 @@ void onnWebsocketd::runWebsocketd(int pPort){
 
 void onnWebsocketd::onStart(){
     std::cout << "websocketd start" << std::endl;
-    int curPort = 3001;
-    flagStart = true;
     if(!getArgument("-ws").isEmpty()){
-        curPort = getArgument("-ws").toInt();
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnWebsocketd::runWebsocketd,curPort);
+        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnWebsocketd::runWebsocketd,getArgument("-ws").toInt());
     }
+    flagStart = true;
     emit doStartFinish();
 }
 

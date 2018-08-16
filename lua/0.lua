@@ -56,14 +56,23 @@ end
 function _destroy(pSymbol)
     if gUser == gBoss[pSymbol]['owner'] then
         gIdentity[gBoss[pSymbol]['maker']] = nil
+        if gFreezen[gBoss[pSymbol]['owner']] <= 1 then
+            gBalance[gOwner] = gBalance[gOwner] + gFreezen[gBoss[pSymbol]['owner']]
+            gFreezen[gBoss[pSymbol]['owner']] = 0
+        else
+            local curPay = gFreezen[gBoss[pSymbol]['owner']]/2
+            gBalance[gOwner] = gBalance[gOwner] + curPay
+            gBalance[gBoss[pSymbol]['owner']] = gBalance[gBoss[pSymbol]['owner']] + (gFreezen[gBoss[pSymbol]['owner']]-curPay)
+            gFreezen[gBoss[pSymbol]['owner']] = 0
+        end
         return "ok"
-    end
-    if gDestroy[pSymbol] > 0 then
-        return 'fail'
     end
     if gFreezen[gBoss[pSymbol]['owner']] > 1 then
         return 'fail'
     end
+    gBalance[gOwner] = gBalance[gOwner] + gFreezen[gBoss[pSymbol]['owner']]
+    gFreezen[gBoss[pSymbol]['owner']] = 0
+    return "ok"
 end
 
 function _getNextBoss(pBalance)

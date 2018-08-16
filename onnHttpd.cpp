@@ -51,8 +51,7 @@ void onnHttpd::runHttpd(int pPort){
 void onnHttpd::onStart(){
     std::cout << "httpd start" << std::endl;
     if(!getArgument("-p").isEmpty()){
-        int curPort = getArgument("-p").toInt();
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,curPort);
+        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,getArgument("-p").toInt());
     }
     flagStart = true;
     emit doStartFinish();

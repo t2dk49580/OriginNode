@@ -678,6 +678,9 @@ void onnObject::setBoss(QByteArray pContract,QByteArray pAddress){
 QByteArray onnObject::getBoss(QByteArray pContract){
     return onnBoss.value(pContract);
 }
+void onnObject::rmBoss(QByteArray pContract){
+    onnBoss.remove(pContract);
+}
 void onnObject::rmBossFromAddress(QByteArray pAddress){
     onnBossforAddress.remove(pAddress);
 }
@@ -731,7 +734,7 @@ QStringList onnObject::getOnlyWork(QStringList pList){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initNetSync(){
-    onnSync->Init(getPrikey(),getPubkey());
+    onnSync->Init(GETADDR(getPubkey()));
 }
 NetSync *onnObject::getNetSync(){
     return onnSync;
@@ -996,6 +999,13 @@ QByteArray onnObject::doOnnTransfer(QByteArray pSender,QByteArray pRecver,QByteA
         return result.toLatin1();
     }
     return "fail";
+}
+bool onnObject::doOnnDestroy(QString pSymbol,QString pKey){
+    QString result;
+    if(!hasContract(pSymbol.toLatin1())){
+        return false;
+    }
+    return _doMethod(getContract(pSymbol.toLatin1()),"_destroy",pSymbol,pKey,result);
 }
 QMultiMap<qint64,QString> onnObject::getOnnBalanceUserList(QStringList pList){
     QMultiMap<qint64,QString> result;
@@ -1496,6 +1506,14 @@ void onnObject::onDestroyNew(QByteArray pData){
         emit doCustomRequire(name,getBoss("0"),"newblock",pData);
         return;
     }
+    if(!doOnnDestroy(arg,key)){
+        BUG << "doOnnDestroy fail";
+        return;
+    }
+    lua_State *curContract = getContract(arg.toLatin1());
+    lua_close(curContract);
+    onnObjectContract->remove(arg);
+    rmBoss(arg.toLatin1());
 }
 void onnObject::onDeployNew(QByteArray pData){
     if(!getBossMissing(getPeerList()).isEmpty()){
@@ -1733,81 +1751,6 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
             QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,curData);
         }
     }
-    /*
-    for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
-        BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
-        emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
-    }
-    QList<onnSyncQueue> curRemove;
-    for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){
-        onnSyncQueue curData;
-        if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request")){
-            continue;
-        }
-        if(onnBlackList.contains(cur.value().blockAddress)){
-            curRemove.append(getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request"));
-            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
-            continue;
-        }
-        curData = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
-        if(QDateTime::currentMSecsSinceEpoch()-curData.blockLastModify>60*1000){
-            curRemove.append(curData);
-            //rmSyncQueue(cur.value().blockContract,cur.value().blockAddress,"request");
-            onnBlackList.append(cur.value().blockAddress);
-            //emit doRequireBlockChainData(cur.value().blockContract,cur.value().blockAddress,curData.blockCurrentIndex,curData.blockEnd);
-        }
-    }
-    for(auto cur:curRemove){
-        rmSyncQueue(cur.blockContract,cur.blockAddress,"request");
-    }
-    curRemove.clear();
-    QList<onnSyncQueue> curSyncQueue;
-    for(auto cur=onnSyncResponse.begin();cur!=onnSyncResponse.end();cur++){
-        if(!hasSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response")){
-            continue;
-        }
-        onnSyncQueue curQueue = getSyncQueue(cur.value().blockContract,cur.value().blockAddress,"response");
-        quint32 curSize = 0;
-        QJsonArray curArray;
-        QJsonDocument curDocument;
-        QByteArray curKey,curVar;
-        for(qint64 i=curQueue.blockCurrentIndex.toLongLong();i<=curQueue.blockEnd.toLongLong() && curSize<88000;i++){
-            curKey = cur.value().blockContract+"-"+QString::number(i).toLatin1();
-            curVar = getDatabaseBlock(curKey);
-            curSize += curVar.count();
-            curArray.append(QString(curVar));
-        }
-        if(curSize>100000 && curArray.count()>1){
-            curSize -= curArray.last().toString().count();
-            curArray.removeLast();
-            curVar = curArray.last().toString().toLatin1();
-        }
-        onnBlock curBlock = createBlock(curVar);
-        BUG << curBlock.blockIndex;
-        curDocument.setArray(curArray);
-        emit doSendBlockChainData(cur.value().blockContract,cur.value().blockAddress,curDocument.toJson());
-        if(!updSyncQueueIndex(cur.value().blockContract,cur.value().blockAddress,"response",curBlock.blockIndex)){
-            curSyncQueue.append(curQueue);
-        }
-    }
-    for(auto cur:curSyncQueue){
-        rmSyncQueue(cur.blockContract,cur.blockAddress,"response");
-    }
-    if(!getBossAddressList().contains(onnObjectKey.address)){
-        return;
-    }
-    if(getPeerList().isEmpty()){
-        return;
-    }
-    //QStringList curBossLose = getBossLose(pLose);
-    QByteArrayList curBossLose = getBossMissing(getPeerList());
-    if(curBossLose.isEmpty()){
-        return;
-    }
-    for(auto curBossAddress:curBossLose){
-        rmBossFromAddress(curBossAddress);
-    }
-    */
 }
 void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, QString pData){
     //BUG << pContract << pAddress;
@@ -1839,7 +1782,8 @@ void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, 
     }*/
     if(!hasSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request")){
         BUG << "doRequireBlockChainData" << localBlock.blockIndex.toLongLong()+1 << curBlock.blockIndex;
-        emit doRequireBlockChainData(pContract,pAddress,QString::number(localBlock.blockIndex.toLongLong()+1),curBlock.blockIndex);
+        //emit doRequireBlockChainData(pContract,pAddress,QString::number(localBlock.blockIndex.toLongLong()+1),curBlock.blockIndex);
+        emit doCustomRequire(pContract,pAddress.toLatin1(),"require",QString::number(localBlock.blockIndex.toLongLong()+1)+":"+curBlock.blockIndex);
         setSyncQueue(pContract.toLatin1(),pAddress.toLatin1(),"request",QString::number(localBlock.blockIndex.toLongLong()+1).toLatin1(),curBlock.blockIndex);
     }
 }
@@ -1880,7 +1824,8 @@ void onnObject::onRequireBlockChainData(QString pContract, QString nodeAddress, 
     BUG << "doSendBlockChainData" << curArray.size() << start << end;
     onnBlock curBlock = createBlock(curVar);
     curDocument.setArray(curArray);
-    emit doSendBlockChainData(pContract,nodeAddress,curDocument.toJson());
+    //emit doSendBlockChainData(pContract,nodeAddress,curDocument.toJson());
+    emit doCustomRequire(pContract,nodeAddress.toLatin1(),"send",curDocument.toJson());
     if(!hasSyncQueue(pContract.toLatin1(),nodeAddress.toLatin1(),"response")){
         setSyncQueue(pContract.toLatin1(),nodeAddress.toLatin1(),"response",curBlock.blockIndex,end.toLatin1());
     }
@@ -1911,21 +1856,27 @@ void onnObject::onSendBlockChainData(QString pContract, QString pAddress, QStrin
     }
 }
 
-void onnObject::onCustomBroadcast(QString, QString, QString, QString){
 
-}
-
-void onnObject::onCustomRequire(QString, QString, QString cmd, QString data){
+void onnObject::onCustomRequire(QString contractID, QString addr, QString cmd, QString data){
     if(flagStart == false){
         BUG << "fail: falg == false";
         return;
     }
     BUG << cmd;
-    if(cmd=="changeboss"){
-
-    }else if(cmd=="newblock"){
+    if(cmd=="newblock"){
         //emit doBlockNew(data.toLatin1());
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,data.toLatin1());
+    }else if(cmd=="level"){
+        onBroadcastBlockChainLevel(contractID,addr,data);
+    }else if(cmd=="require"){
+        QStringList startEnd = data.split(":");
+        if(startEnd.count()<2){
+            BUG << cmd << "fail: startEnd.count()<2" << data;
+            return;
+        }
+        onRequireBlockChainData(contractID,addr,startEnd.at(0),startEnd.at(1));
+    }else if(cmd=="send"){
+        onSendBlockChainData(contractID,addr,data);
     }else{
         BUG << "fail: Unknow cmd" << cmd;
     }
@@ -1963,7 +1914,8 @@ void onnObject::onTimeout(){
 
     for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
         //BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
-        emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
+        //emit doBroadcastBlockChainLevel(curBlockIter.key(),toString(curBlockIter.value().blockCurrent));
+        emit doCustomBroadcast(curBlockIter.key(),"level",toString(curBlockIter.value().blockCurrent));
     }
     QList<onnSyncQueue> curRemove;
     for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){
@@ -2014,7 +1966,8 @@ void onnObject::onTimeout(){
         onnBlock curBlock = createBlock(curVar);
         BUG << curBlock.blockIndex;
         curDocument.setArray(curArray);
-        emit doSendBlockChainData(cur.value().blockContract,cur.value().blockAddress,curDocument.toJson());
+        //emit doSendBlockChainData(cur.value().blockContract,cur.value().blockAddress,curDocument.toJson());
+        emit doCustomRequire(cur.value().blockContract,cur.value().blockAddress,"send",curDocument.toJson());
         if(!updSyncQueueIndex(cur.value().blockContract,cur.value().blockAddress,"response",curBlock.blockIndex)){
             curSyncQueue.append(curQueue);
         }

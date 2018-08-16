@@ -99,6 +99,7 @@ public:
 
     static void setBoss(QByteArray,QByteArray);
     static QByteArray getBoss(QByteArray);
+    static void rmBoss(QByteArray);
     static void rmBossFromAddress(QByteArray);
     static QByteArrayList getBossFromAddress(QByteArray);
     static QByteArrayList getBossAddressList();
@@ -139,6 +140,7 @@ public:
     static QString setNextBoss(QString);
     static QString setDeployBoss(QString,QString);
     static QString setPeers();
+    static bool doOnnDestroy(QString,QString);
     static QByteArray doOnnTransfer(QByteArray,QByteArray,QByteArray);
     static bool checkCustomNetData(QByteArray,QByteArray,onnData &);
     static QMultiMap<qint64,QString> getOnnBalanceUserList(QStringList);
@@ -225,7 +227,6 @@ public slots:
     void onRequireBlockChainData(QString, QString, QString, QString);
     void onSendBlockChainData(QString, QString, QString);
 
-    void onCustomBroadcast(QString contractID, QString addr, QString cmd, QString data);
     void onCustomRequire(QString contractID, QString addr, QString cmd, QString data);
 
     void onBossMissing(QByteArrayList);

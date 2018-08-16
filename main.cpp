@@ -22,12 +22,8 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount()*2);
     onnSystem *obj = new onnSystem();
-//    QByteArray sec = obj->Encrypt(GETMD5("password"),"hello world");
-//    QByteArray msg = obj->Decrypt(GETMD5("password"),sec);
-//    BUG << sec;
-//    BUG << msg;
-//    return 0;
     QString onnVersion = "0.9.1.1";
+
     obj->initArgv(argc,argv);
     obj->initKey();
     obj->initBoss();
@@ -35,8 +31,7 @@ int main(int argc, char *argv[])
     obj->initNetSync();
     obj->initWebsocketd();
 
-    BUG << GETADDR(obj->getPubkey());
-
+    BUG << onnVersion << GETADDR(obj->getPubkey());
 #if 0
     obj->makeBlock0();
 #endif

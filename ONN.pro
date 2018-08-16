@@ -32,10 +32,8 @@ SOURCES += \
     onnUdpd.cpp \
     onnChecker.cpp
 
-include("./Crypto/EmccSDK/nemcc/nemcc.pri")
-include("./p2psrc/np2p.pri")
+include("./src/Crypto/EmccSDK/nemcc/nemcc.pri")
 include("./NetSync/netsync.pri")
-include("./Network/network.pri")
 
 LIBS += -luWS -lz -lcrypto -lssl -llua5.3 -lleveldb -lhandy
 

@@ -1,7 +1,6 @@
 #include "mainnetserver.h"
 #include "npeerdata.h"
 #include "messageprotocol.h"
-#include "nemcc.h"
 
 MainNetServer::MainNetServer(QObject *parent) : QObject(parent)
 {
@@ -11,38 +10,21 @@ MainNetServer::MainNetServer(QObject *parent) : QObject(parent)
     Init();
 }
 
-void MainNetServer::Init(QString secKey, QString pubKey)
+void MainNetServer::Init(QString addrID)
 {
-    NEmcc emcc;
-    emcc.SetSecKey(secKey);
-    emcc.SetPubKey(pubKey);
-    QString addr = emcc.ethAddr;
-
     QSettings p2pSetting("p2p.cfg",QSettings::IniFormat);
     QIPEndPoint local(p2pSetting.value("Local").toString());
     QIPEndPoint natServer(p2pSetting.value("NATServer").toString());
     QIPEndPoint p2pServer(p2pSetting.value("P2PServer").toString());
     qDebug()<<__FUNCTION__<<natServer.ToString()<<p2pServer.ToString();
     interface.Init(local,p2pServer);
-    p2p.Init(addr,natServer,local);
+    p2p.Init(addrID,natServer,local);
 }
 
 void MainNetServer::Init()
 {
-    const QString cryptoFileName = "crypto.cfg";
-    QSettings cryptoSetting(cryptoFileName, QSettings::IniFormat);
-    if(!QFile(cryptoFileName).exists()){
-        qDebug()<<"Not find crypto.cfg, generate new keyPair!!";
-        NEmcc ecc;
-        ecc.GenerateKeyPair();
-        cryptoSetting.setValue("SecKey", ecc.privateKeyString);
-        cryptoSetting.setValue("PubKey", ecc.publicKeyString);
-        cryptoSetting.sync();
-    }
-
-    QString secKey = cryptoSetting.value("SecKey").toString();
-    QString pubKey = cryptoSetting.value("PubKey").toString();
-    Init(secKey, pubKey);
+    auto id = QCryptographicHash::hash(QTime::currentTime().toString().toLatin1(),QCryptographicHash::Sha256);
+    Init(QString(id).left(8));
 }
 
 QString MainNetServer::getID()
