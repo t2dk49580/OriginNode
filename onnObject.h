@@ -163,6 +163,7 @@ signals:
     void doPeerOldOK(QByteArray);
     void doDeployOldOK(QByteArray,QByteArray);
     void doMethodOldOK(QByteArray,QByteArray);
+    void doDestroyOldOK(QByteArray);
 
     void doBlockNew(QByteArray);
     void doDeployNew(QByteArray);
@@ -172,6 +173,7 @@ signals:
     void doPeerNewOK(QByteArray);
     void doDeployNewOK(QByteArray,QByteArray);
     void doMethodNewOK(QByteArray,QByteArray);
+    void doDestroyNewOK(QByteArray);
 
     void doSaveBlock(QByteArray,QByteArray);
 
@@ -208,6 +210,7 @@ public slots:
     void onPeerOldOK(QByteArray);
     void onDeployOldOK(QByteArray,QByteArray);
     void onMethodOldOK(QByteArray,QByteArray);
+    void onDestroyOldOK(QByteArray);
 
     void onBlockNew(QByteArray);
     void onDeployNew(QByteArray);
@@ -217,6 +220,7 @@ public slots:
     void onPeerNewOK(QByteArray);
     void onDeployNewOK(QByteArray,QByteArray);
     void onMethodNewOK(QByteArray,QByteArray);
+    void onDestroyNewOK(QByteArray);
 
     void onSaveBlock(QByteArray,QByteArray);
 

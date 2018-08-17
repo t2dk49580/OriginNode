@@ -1104,7 +1104,7 @@ void onnObject::onBlockOld(QByteArray pData){
                                                   curBlock.blockHashPrev+\
                                                   curBlock.blockData+\
                                                   curBlock.blockMaker).toHex();
-
+    BUG << curBlock.blockIndex << pubkey << data << sign;
     if(getVerify(pubkey,data,sign)){
         BUG << "msg fail: verify fail" << pData;
         return;
@@ -1172,6 +1172,8 @@ void onnObject::onDestroyOld(QByteArray pData){
     lua_close(curContract);
     onnObjectContract->remove(arg);
     rmBoss(arg.toLatin1());
+    insertBlock("0",curBlock);
+    emit doDestroyOldOK(pData);
 }
 void onnObject::onDeployOld(QByteArray pData){
     onnBlock curBlock = createBlock(pData);
@@ -1457,6 +1459,40 @@ void onnObject::onMethodOldOK(QByteArray pContract,QByteArray pData){
     }
     emit doBlockOld(curValue);
 }
+void onnObject::onDestroyOldOK(QByteArray pData){
+    onnBlock curBlock1 = createBlock(pData);
+    if(getDatabaseBlock(QByteArray("0-")+curBlock1.blockIndex)=="null"){
+        setDatabaseBlock(QByteArray("0-")+curBlock1.blockIndex,pData);
+    }
+    BUG << curBlock1.blockIndex;
+    if(flagStart){
+        return;
+    }
+    qint64 i = curBlock1.blockIndex.toLongLong()+1;
+    QByteArray curKey = "0-";
+    QByteArray prvValue = pData;
+    QByteArray curValue = getDatabaseBlock(curKey+QByteArray::number(i));
+    if(i==1){
+        prvValue = getBlock0();
+    }
+    if(curValue == "null"){
+        doFinishReadable("0");
+        return;
+    }
+    onnBlock curBlock = createBlock(curValue);
+    onnBlock prvBlock = createBlock(prvValue);
+    if(curBlock.blockIndex.toLongLong()!=prvBlock.blockIndex.toLongLong()+1){
+        BUG << "curBlock.blockIndex.toLongLong()!=prvBlock.blockIndex.toLongLong()+1";
+        doFinishReadable("0");
+        return;
+    }
+    if(curBlock.blockHashPrev!=prvBlock.blockHash){
+        BUG << "curBlock.blockHashPrev!=prvBlock.blockHash";
+        doFinishReadable("0");
+        return;
+    }
+    emit doBlockOld(curValue);
+}
 
 void onnObject::onBlockNew(QByteArray pData){
     QList<QByteArray> listCmd = pData.split('&');
@@ -1545,6 +1581,13 @@ void onnObject::onDestroyNew(QByteArray pData){
     lua_close(curContract);
     onnObjectContract->remove(arg);
     rmBoss(arg.toLatin1());
+    onnBlock curBlock = createBlock(getBlock("0").blockIndex.toLongLong()+1,\
+                                    QDateTime::currentMSecsSinceEpoch(),\
+                                    getBlock("0").blockHash,\
+                                    pData);
+    insertBlock("0",curBlock);
+    setDatabaseBlock(curHash,curHash);
+    emit doDestroyNewOK(toString(curBlock));
 }
 void onnObject::onDeployNew(QByteArray pData){
     if(!getBossMissing(getPeerList()).isEmpty()){
@@ -1743,6 +1786,12 @@ void onnObject::onMethodNewOK(QByteArray pContract,QByteArray pData){
     setDatabaseBlock(pContract+'-'+curBlock.blockIndex,pData);
     //emit doBoardcastBlockChainLevel(pContract,onnObject::toString(curBlock));
     BUG << pContract << curBlock.blockIndex;
+}
+void onnObject::onDestroyNewOK(QByteArray pData){
+    onnBlock curBlock = createBlock(pData);
+    setDatabaseBlock(QByteArray("0-")+curBlock.blockIndex,pData);
+    //emit doBoardcastBlockChainLevel(pContract,onnObject::toString(curBlock));
+    BUG << curBlock.blockIndex;
 }
 
 void onnObject::onSaveBlock(QByteArray,QByteArray){}
