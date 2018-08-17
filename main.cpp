@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount()*2);
     onnSystem *obj = new onnSystem();
-    QString onnVersion = "0.9.1.1";
+    QString onnVersion = "0.9.1.2";
 
     obj->initArgv(argc,argv);
     obj->initKey();
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     obj->initNetSync();
     obj->initWebsocketd();
 
-    BUG << onnVersion << GETADDR(obj->getPubkey());
+    BUG << "info" << onnVersion << GETADDR(obj->getPubkey());
 #if 0
     obj->makeBlock0();
 #endif

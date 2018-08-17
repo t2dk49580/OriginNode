@@ -95,6 +95,13 @@ function _getResult(pUser,pMethod,pResult,pMsg)
     return json.encode(result)
 end
 
+function getPlayer()
+    local curResult = {}
+    curResult['method']  = 'getPlayer'
+    curResult['data']    = gPlayer
+    return json.encode(curResult)
+end
+
 function timeout()
     --if gUser ~= gOwner then
     --    return 'fail'
@@ -189,7 +196,9 @@ print(timeout())
 print(getTick('1'))
 print(getTick('10'))
 print(gPlayerNum)
+print(getPlayer())
 closeGame()
 print(gPlayerNum)
 print(getStat())
 print(getTick('1'))
+
