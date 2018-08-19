@@ -50,9 +50,12 @@ int main(int argc, char *argv[])
     //gTimer->start(step);
     //tt0->onTimeout("");
 
-    t[2]->start();
-    t[0]->start();
-    t[1]->start();
+    n->onStart();
+    tt0->onStart();
+
+    //t[2]->start();
+    //t[0]->start();
+    //t[1]->start();
 
     return a.exec();
 }

@@ -1949,7 +1949,15 @@ void onnObject::onCustomRequire(QString contractID, QString addr, QString cmd, Q
         //emit doBlockNew(data.toLatin1());
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,data.toLatin1());
     }else if(cmd=="level"){
-        onBroadcastBlockChainLevel(contractID,addr,data);
+        QStringList levelData = data.split(",");
+        for(auto curLevel:levelData){
+            QStringList curData = curLevel.split(":");
+            if(curData.count() != 2){
+                BUG << "error: data error" << curData;
+                continue;
+            }
+            onBroadcastBlockChainLevel(curData.first(),addr,curData.last());
+        }
     }else if(cmd=="require"){
         QStringList startEnd = data.split(":");
         if(startEnd.count()<2){
@@ -1993,11 +2001,24 @@ void onnObject::onTimeout(){
         BUG << "fail: curPeerList.count() == 1 && ==" << onnObjectKey.address;
         return;
     }
-
-    for(auto curBlockIter=onnBlockChain->begin();curBlockIter!=onnBlockChain->end();curBlockIter++){
+    QStringList levelData;
+    QHash<QString,onnBossBlock> curBlockChain = *onnBlockChain;
+    QHash<QString,onnBossBlock> *curBlockChainPtr = &curBlockChain;
+    for(auto curBlockIter=curBlockChainPtr->begin();curBlockIter!=curBlockChainPtr->end();curBlockIter++){
         //BUG << "doBroadcastBlockChainLevel" << curBlockIter.key() << curBlockIter.value().blockCurrent.blockIndex;
-        //emit doCustomBroadcast(curBlockIter.key(),"level",toString(curBlockIter.value().blockCurrent));
-        emit doCustomBroadcast(curBlockIter.key(),"level",curBlockIter.value().blockCurrent.blockIndex);
+        //emit doCustomBroadcast(curBlockIter.key(),"level",curBlockIter.value().blockCurrent.blockIndex);
+        if(levelData.isEmpty()){
+            levelData.append(curBlockIter.key()+":"+curBlockIter.value().blockCurrent.blockIndex);
+        }else{
+            if(levelData.last().count()>10000){
+                levelData.append(curBlockIter.key()+":"+curBlockIter.value().blockCurrent.blockIndex);
+            }else{
+                levelData.replace(levelData.count()-1,levelData.last()+","+curBlockIter.key()+":"+curBlockIter.value().blockCurrent.blockIndex);
+            }
+        }
+    }
+    for(auto curLevel:levelData){
+        emit doCustomBroadcast("*","level",curLevel);
     }
     QList<onnSyncQueue> curRemove;
     for(auto cur=onnSyncRequest.begin();cur!=onnSyncRequest.end();cur++){

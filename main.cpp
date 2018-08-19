@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount()*2);
     onnSystem *obj = new onnSystem();
-    QString onnVersion = "0.9.1.2";
+    QString onnVersion = "0.9.1.3";
 
     obj->initArgv(argc,argv);
     obj->initKey();

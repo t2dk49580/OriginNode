@@ -99,6 +99,7 @@ function getPlayer()
     local curResult = {}
     curResult['method']  = 'getPlayer'
     curResult['data']    = gPlayer
+    curResult['max']     = gPlayerMax
     return json.encode(curResult)
 end
 
@@ -121,7 +122,7 @@ function setPlayerMax(pMax)
     if gUser ~= gOwner then
         return 'fail'
     end
-    gPlayerMax = pMax
+    gPlayerMax = tonumber(pMax)
     return _getResult('*','setPlayerMax',true,pMax)
 end
 

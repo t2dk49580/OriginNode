@@ -22,6 +22,7 @@
 #include <QMultiMap>
 #include <cstdio>
 #include <QMultiHash>
+#include <QProcess>
 
 #define BUG qDebug()<<__FILE__<< __LINE__ << __FUNCTION__
 #define SETXF(A,B) QString("%1").arg(A, 0, 'f', B)

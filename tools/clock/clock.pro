@@ -1,5 +1,5 @@
 QT -= gui
-QT += core gui websockets concurrent
+QT += core websockets concurrent
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
