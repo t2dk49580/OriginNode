@@ -7,6 +7,8 @@ extern onnHttpd        *blockHttpd;
 extern onnUdpd         *blockUdpd;
 extern onnWebsocketd   *blockWebsocketd;
 
+extern QTimer *timerCustom;
+
 onnSystem::onnSystem(){
 
 }
@@ -57,4 +59,5 @@ void onnSystem::onStartFinish(){
     CONN(blockHttpd,SIGNAL(doMethodNew(QByteArray)),blockContract,SLOT(onMethodNew(QByteArray)));
     CONN(blockHttpd,SIGNAL(doPeerNew(QByteArray)),blockContract,SLOT(onPeerNew(QByteArray)));
 
+    timerCustom->start(timeoutStep);
 }

@@ -26,7 +26,7 @@ int onnSyncResponseCount = 0;
 QStringList onnClientList;
 QMultiHash<QByteArray,QByteArray> onnChangeBossData;
 QStringList onnBlackList;
-QMutex onnLock;
+QReadWriteLock onnRWlock;
 
 onnObject::onnObject(){
     flagStart = false;
@@ -248,6 +248,9 @@ QByteArray onnObject::getPubkey(){
 QByteArray onnObject::getPrikey(){
     return onnObjectKey.prikey;
 }
+QByteArray onnObject::getAddress(){
+    return onnObjectKey.address;
+}
 
 QByteArray onnObject::getHash(QByteArray pData){
     return QCryptographicHash::hash(pData,QCryptographicHash::Sha256);
@@ -362,6 +365,8 @@ void onnObject::initArgv(int argc, char *argv[]){
         cout << "    -p     RPC listen port, default 3000" << endl;
         cout << "    -ws    websocket listen port, default 3001" << endl;
         cout << "    -i     import a key file, default key.ini" << endl;
+        cout << "    -t     enable timer for run smartcontract function _timeout()" << endl;
+        cout << "    -s     set msec timer step when you use -t" << endl;
         cout << "    -h     show this info" << endl;
         exit(1);
     }
@@ -504,22 +509,20 @@ onnBlock onnObject::createBlock(qint64 pIndex,qint64 pTime,QString pHashPrev,QBy
 //////////////////////////////////////////////////////////////////////////////////////////
 QString onnObject::doGetRandom(){
     QString result;
-    _doMethod(getContract("0"),"_doRand",QString::number(getPeerList().count()),getPubkey(),result);
+    _doMethodR(getContract("0"),"_doRand",QString::number(getPeerList().count()),getPubkey(),result);
     return result;
 }
 QString onnObject::doGetRandom(int pMax){
     QString result;
-    _doMethod(getContract("0"),"_doRand",QString::number(pMax),getPubkey(),result);
+    _doMethodR(getContract("0"),"_doRand",QString::number(pMax),getPubkey(),result);
     return result;
 }
 bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
-    onnLock.lock();
     lua_getglobal(luaInterface, "_setUser");
     lua_pushstring(luaInterface, pkey.toLatin1().data());
     if(lua_pcall(luaInterface, 1, 1, 0) != 0){
         BUG << "error _setUser" << lua_tostring(luaInterface,-1);
         ret = "error lua_pcall _setUser";
-        onnLock.unlock();
         return false;
     }
     lua_settop(luaInterface,0);
@@ -542,7 +545,6 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     if(lua_pcall(luaInterface, arglen, 1, 0) != 0){
         BUG << "error lua_pcall" << pFunction << pArg << lua_tostring(luaInterface,-1);;
         ret = "error lua_pcall function";
-        onnLock.unlock();
         return false;
     }
     if(lua_isstring(luaInterface, 1)){
@@ -555,12 +557,22 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
         ret = "null";
     }
     lua_settop(luaInterface,0);
-    onnLock.unlock();
     if(ret.left(4) == "fail")
         return false;
     return true;
 }
-
+bool onnObject::_doMethodW(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+    onnRWlock.lockForWrite();
+    bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
+    onnRWlock.unlock();
+    return result;
+}
+bool onnObject::_doMethodR(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+    onnRWlock.lockForRead();
+    bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
+    onnRWlock.unlock();
+    return result;
+}
 QByteArray onnObject::doMethodGet(QByteArray pMsg){
     BUG << pMsg;
     QList<QByteArray> msgList = pMsg.split('$');
@@ -581,7 +593,7 @@ QByteArray onnObject::doMethodGet(QByteArray pMsg){
         QString lc = "method fail: contract not exist";
         return lc.toLatin1();
     }
-    _doMethod(getContract(contract.toLatin1()),method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
+    _doMethodW(getContract(contract.toLatin1()),method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
     return result.toLatin1();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -912,7 +924,7 @@ double onnObject::getContractBalance(QByteArray pContract,QByteArray pAddress){
         return 0;
     }
     QString result;
-    if(_doMethod(getContract(pContract),"_getBalanceOf",pAddress,pAddress,result)){
+    if(_doMethodR(getContract(pContract),"_getBalanceOf",pAddress,pAddress,result)){
         if(result=="fail")
             return 0;
         return result.toDouble();
@@ -921,7 +933,7 @@ double onnObject::getContractBalance(QByteArray pContract,QByteArray pAddress){
 }
 double onnObject::getOnnBalance(QByteArray pAddr){
     QString result;
-    if(_doMethod(getContract("0"),"_getBalanceOf",pAddr,pAddr,result)){
+    if(_doMethodR(getContract("0"),"_getBalanceOf",pAddr,pAddr,result)){
         return result.toDouble();
     }
     return 0;
@@ -931,7 +943,7 @@ QByteArray onnObject::getOnnBossOwner(QByteArray pBoss){
     if(!hasContract(pBoss)){
         return "";
     }
-    if(_doMethod(getContract(pBoss),"_getOwner","null",onnObjectKey.address,result)){
+    if(_doMethodR(getContract(pBoss),"_getOwner","null",onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "";
@@ -941,7 +953,7 @@ QByteArray onnObject::getOnnBossTotal(QByteArray pSymbol){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"_getTotal","null",onnObjectKey.address,result)){
+    if(_doMethodR(getContract(pSymbol),"_getTotal","null",onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "fail";
@@ -951,7 +963,7 @@ QByteArray onnObject::getOnnBossMaker(QByteArray pSymbol){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"getBossMaker",pSymbol,onnObjectKey.address,result)){
+    if(_doMethodR(getContract(pSymbol),"getBossMaker",pSymbol,onnObjectKey.address,result)){
         return result.toLatin1();
     }
     return "fail";
@@ -961,7 +973,7 @@ QByteArray onnObject::setOnnBossMaker(QByteArray pSymbol, QByteArray pAddress){
     if(!hasContract(pSymbol)){
         return "fail";
     }
-    if(_doMethod(getContract(pSymbol),"setBossMaker",pSymbol+"?"+pAddress,onnObjectKey.address,result)){
+    if(_doMethodW(getContract(pSymbol),"setBossMaker",pSymbol+"?"+pAddress,onnObjectKey.address,result)){
         setBoss(pSymbol,pAddress);
         return result.toLatin1();
     }
@@ -969,7 +981,7 @@ QByteArray onnObject::setOnnBossMaker(QByteArray pSymbol, QByteArray pAddress){
 }
 QString onnObject::setNextBoss(QString pArg){
     QString curResult;
-    _doMethod(getContract("0"),"_setNextBoss",pArg,onnObjectKey.address,curResult);
+    _doMethodW(getContract("0"),"_setNextBoss",pArg,onnObjectKey.address,curResult);
     if(curResult.isEmpty() || curResult.left(4) == "fail"){
         BUG << curResult;
         curResult = "fail";
@@ -978,7 +990,7 @@ QString onnObject::setNextBoss(QString pArg){
 }
 QString onnObject::setDeployBoss(QString pArg, QString pKey){
     QString curResult;
-    _doMethod(getContract("0"),"_setDeployBoss",pArg,pKey,curResult);
+    _doMethodW(getContract("0"),"_setDeployBoss",pArg,pKey,curResult);
     if(curResult.isEmpty() || curResult.left(4) == "fail"){
         BUG << curResult;
         curResult = "fail";
@@ -987,7 +999,7 @@ QString onnObject::setDeployBoss(QString pArg, QString pKey){
 }
 QString onnObject::setPeers(){
     QString curResult;
-    _doMethod(getContract("0"),"_setPeers",getPeerList().join(","),onnObjectKey.address,curResult);
+    _doMethodW(getContract("0"),"_setPeers",getPeerList().join(","),onnObjectKey.address,curResult);
     return curResult;
 }
 QByteArray onnObject::doOnnTransfer(QByteArray pSender,QByteArray pRecver,QByteArray pNumber){
@@ -995,7 +1007,7 @@ QByteArray onnObject::doOnnTransfer(QByteArray pSender,QByteArray pRecver,QByteA
     if(!hasContract("0")){
         return "fail";
     }
-    if(_doMethod(getContract("0"),"transfer",pRecver+"?"+pNumber,pSender,result)){
+    if(_doMethodW(getContract("0"),"transfer",pRecver+"?"+pNumber,pSender,result)){
         return result.toLatin1();
     }
     return "fail";
@@ -1005,7 +1017,7 @@ bool onnObject::doOnnDestroy(QString pSymbol,QString pKey){
     if(!hasContract(pSymbol.toLatin1())){
         return false;
     }
-    return _doMethod(getContract(pSymbol.toLatin1()),"_destroy",pSymbol,pKey,result);
+    return _doMethodW(getContract(pSymbol.toLatin1()),"_destroy",pSymbol,pKey,result);
 }
 QMultiMap<qint64,QString> onnObject::getOnnBalanceUserList(QStringList pList){
     QMultiMap<qint64,QString> result;
@@ -1218,12 +1230,12 @@ void onnObject::onDeployOld(QByteArray pData){
     luaL_dostring(luaInterface,code.toLatin1().data());
     QString result;
     QString resultInit;
-    if(!_doMethod(luaInterface,"init",arg,key,resultInit)){
+    if(!_doMethodW(luaInterface,"init",arg,key,resultInit)){
         lua_close(luaInterface);
         return;
     }
     QString curTotal;
-    if(_doMethod(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
+    if(_doMethodR(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
         curTotal = "0";
@@ -1233,7 +1245,7 @@ void onnObject::onDeployOld(QByteArray pData){
     }
     if(!getContracts().isEmpty()){
         //result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
-        if(_doMethod(getContract("0"),"_setDeployBoss",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
+        if(_doMethodW(getContract("0"),"_setDeployBoss",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
             BUG << "setDeployBoss ok";
             setBoss(name.toLatin1(),result.toLatin1());
         }else{
@@ -1272,7 +1284,7 @@ void onnObject::onMethodOld(QByteArray pData){
     if(!checkBlockIndexAndHash(name,curBlock)){
         return;
     }
-    if(_doMethod(getContract(name.toLatin1()),code,arg,key,result)){
+    if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
         insertBlock(name.toLatin1(),curBlock);
         emit doMethodOldOK(name.toLatin1(),pData);
         if(flagStart){
@@ -1646,7 +1658,7 @@ void onnObject::onDeployNew(QByteArray pData){
     luaL_dostring(luaInterface,code.toLatin1().data());
     QString result;
     QString resultInit;
-    if(!_doMethod(luaInterface,"init",arg,key,resultInit)){
+    if(!_doMethodW(luaInterface,"init",arg,key,resultInit)){
         lua_close(luaInterface);
         return;
     }
@@ -1659,7 +1671,7 @@ void onnObject::onDeployNew(QByteArray pData){
         setBoss(name.toLatin1(),onnObjectKey.address);
     */
     QString curTotal;
-    if(_doMethod(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
+    if(_doMethodR(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
         curTotal = "0";
@@ -1711,7 +1723,7 @@ void onnObject::onMethodNew(QByteArray pData){
         BUG << "bad method: hasSyncQueueRequest" << name;
         return;
     }
-    if(_doMethod(getContract(name.toLatin1()),code,arg,key,result)){
+    if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
         onnBlock curBlock = createBlock(getBlock(name.toLatin1()).blockIndex.toLongLong()+1,\
                                         QDateTime::currentMSecsSinceEpoch(),\
                                         getBlock(name.toLatin1()).blockHash,\
@@ -1855,7 +1867,7 @@ void onnObject::onBroadcastBlockChainLevel(QString pContract, QString pAddress, 
     onnBlock localBlock = getBlock(pContract);
 
     if(pIndex.toLongLong()<=localBlock.blockIndex.toLongLong()){
-        BUG << "pIndex.toLongLong()<=localBlock.blockIndex.toLongLong()" << pIndex << localBlock.blockIndex;
+        //BUG << "pIndex.toLongLong()<=localBlock.blockIndex.toLongLong()" << pIndex << localBlock.blockIndex;
         return;
     }/*else if(curBlock.blockIndex.toLongLong()==localBlock.blockIndex.toLongLong()+1){
         emit doBlockOld(pData.toLatin1());

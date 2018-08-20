@@ -47,6 +47,7 @@ public:
     static QByteArray getSignHash(QByteArray);
     static QByteArray getPubkey();
     static QByteArray getPrikey();
+    static QByteArray getAddress();
     static QByteArray getHash(QByteArray);
     static bool getVerify(QByteArray,QByteArray,QByteArray);
 
@@ -86,6 +87,8 @@ public:
     static QString doGetRandom();
     static QString doGetRandom(int);
     static bool _doMethod(lua_State *,QString,QString,QString,QString &);
+    static bool _doMethodW(lua_State *,QString,QString,QString,QString &);
+    static bool _doMethodR(lua_State *,QString,QString,QString,QString &);
     static QByteArray doMethodGet(QByteArray pMsg);
 
     static void addContract(QByteArray,lua_State *&);

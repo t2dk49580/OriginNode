@@ -1,7 +1,8 @@
 #include <QCoreApplication>
 #include "onnSystem.h"
 
-QTimer *timerUdpd = new QTimer();
+QTimer *timerUdpd  = new QTimer();
+QTimer *timerCustom= new QTimer();
 
 QThread *threadChecker   = new QThread();
 QThread *threadContract  = new QThread();
@@ -86,6 +87,19 @@ int main(int argc, char *argv[])
     CONN(blockUdpd,SIGNAL(doBlockOld(QByteArray)),blockChecker,SLOT(onBlockOld(QByteArray)));
 
     CONN(timerUdpd,SIGNAL(timeout()),blockUdpd,SLOT(onTimeout()));
+    CONN(timerCustom,SIGNAL(timeout()),blockContract,SLOT(onTimeout()));
+    CONN(blockContract,SIGNAL(timerStop()),timerCustom,SLOT(stop()));
+
+    if(!obj->getArgument("-t").isEmpty() && !obj->getArgument("-s").isEmpty()){
+        QString curContract = obj->getArgument("-t");
+        QString curStep     = obj->getArgument("-s");
+        if(curStep.toInt() <= 0){
+            BUG << "error: -s value can not set <= 0";
+            exit(-1);
+        }
+        blockContract->timeoutContract = curContract;
+        obj->timeoutStep = curStep.toInt();
+    }
 
     obj->init();
     timerUdpd->start(1000);

@@ -118,6 +118,18 @@ function timeout()
     return 'fail'
 end
 
+function _timeout()
+    print('system timeout')
+    if gPlayerNum < gPlayerMax then
+        return 'null'
+    end
+    gTimeout = gTimeout+1
+    local curQueue = _clone(gQueue)
+    gQueue = {}
+    table.insert( gTick, curQueue )
+    return 'null'
+end
+
 function setPlayerMax(pMax)
     if gUser ~= gOwner then
         return 'fail'

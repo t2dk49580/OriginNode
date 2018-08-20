@@ -18,7 +18,8 @@ void onnHttpd::runHttpd(int pPort){
     int r = httpd.bind("", curPort);
     if(r){
         cout<<"runHttp failed:"<<curPort<<endl;
-        exit(-1);
+        QCoreApplication::quit();
+        //exit(-1);
     }
     httpd.onDefault([&](const handy::HttpConnPtr& con){
         handy::HttpResponse resp;

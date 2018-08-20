@@ -16,6 +16,7 @@ class onnSystem : public onnObject
 public:
     explicit onnSystem();
     void initBoss();
+    int  timeoutStep;
 signals:
 
 public slots:
