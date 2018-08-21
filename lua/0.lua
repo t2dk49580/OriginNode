@@ -669,6 +669,11 @@ end
 
 _setUser('1234')
 init()
+local index = 0
+for index=0,100000,1 do
+    print(index,transfer('5678','1'))
+end
+--[[
 _setPeers('1234,5678,aaaa,bbbb,cccc,dddd,eeee')
 transfer('5678','50000')
 transfer('aaaa','110000')
@@ -724,3 +729,4 @@ print(json.encode(gIdentity))
 _setUser('aaaa')
 print(setBossMaker('b1','cccc'))
 print(json.encode(gIdentity))
+]]--

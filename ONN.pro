@@ -30,12 +30,48 @@ SOURCES += \
     onnHttpd.cpp \
     onnWebsocketd.cpp \
     onnUdpd.cpp \
-    onnChecker.cpp
+    onnChecker.cpp \
+    ovm/lapi.c \
+    ovm/lauxlib.c \
+    ovm/lbaselib.c \
+    ovm/lbitlib.c \
+    ovm/lcode.c \
+    ovm/lcorolib.c \
+    ovm/lctype.c \
+    ovm/ldblib.c \
+    ovm/ldebug.c \
+    ovm/ldo.c \
+    ovm/ldump.c \
+    ovm/lfunc.c \
+    ovm/lgc.c \
+    ovm/linit.c \
+    ovm/liolib.c \
+    ovm/llex.c \
+    ovm/lmathlib.c \
+    ovm/lmem.c \
+    ovm/loadlib.c \
+    ovm/lobject.c \
+    ovm/lopcodes.c \
+    ovm/loslib.c \
+    ovm/lparser.c \
+    ovm/lstate.c \
+    ovm/lstring.c \
+    ovm/lstrlib.c \
+    ovm/ltable.c \
+    ovm/ltablib.c \
+    ovm/ltm.c \
+    ovm/lua.c \
+    ovm/luac.c \
+    ovm/lundump.c \
+    ovm/lutf8lib.c \
+    ovm/lvm.c \
+    ovm/lzio.c
 
 include("./src/Crypto/EmccSDK/nemcc/nemcc.pri")
 include("./NetSync/netsync.pri")
 
-LIBS += -luWS -lz -lcrypto -lssl -llua5.3 -lleveldb -lhandy
+#LIBS += -luWS -lz -lcrypto -lssl -llua5.3 -lleveldb -lhandy
+LIBS += -luWS -lz -lcrypto -lssl -lleveldb -lhandy
 
 HEADERS += \
     onnDefine.h \
@@ -52,4 +88,30 @@ HEADERS += \
     onnHttpd.h \
     onnWebsocketd.h \
     onnUdpd.h \
-    onnChecker.h
+    onnChecker.h \
+    ovm/lapi.h \
+    ovm/lauxlib.h \
+    ovm/lcode.h \
+    ovm/lctype.h \
+    ovm/ldebug.h \
+    ovm/ldo.h \
+    ovm/lfunc.h \
+    ovm/lgc.h \
+    ovm/llex.h \
+    ovm/llimits.h \
+    ovm/lmem.h \
+    ovm/lobject.h \
+    ovm/lopcodes.h \
+    ovm/lparser.h \
+    ovm/lprefix.h \
+    ovm/lstate.h \
+    ovm/lstring.h \
+    ovm/ltable.h \
+    ovm/ltm.h \
+    ovm/lua.h \
+    ovm/lua.hpp \
+    ovm/luaconf.h \
+    ovm/lualib.h \
+    ovm/lundump.h \
+    ovm/lvm.h \
+    ovm/lzio.h

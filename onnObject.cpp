@@ -27,6 +27,7 @@ QStringList onnClientList;
 QMultiHash<QByteArray,QByteArray> onnChangeBossData;
 QStringList onnBlackList;
 QReadWriteLock onnRWlock;
+int onnGas = 0;
 
 onnObject::onnObject(){
     flagStart = false;
@@ -523,6 +524,8 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     if(lua_pcall(luaInterface, 1, 1, 0) != 0){
         BUG << "error _setUser" << lua_tostring(luaInterface,-1);
         ret = "error lua_pcall _setUser";
+        onnGas = lua_getGas();
+        lua_resetGas();
         return false;
     }
     lua_settop(luaInterface,0);
@@ -545,6 +548,8 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     if(lua_pcall(luaInterface, arglen, 1, 0) != 0){
         BUG << "error lua_pcall" << pFunction << pArg << lua_tostring(luaInterface,-1);;
         ret = "error lua_pcall function";
+        onnGas = lua_getGas();
+        lua_resetGas();
         return false;
     }
     if(lua_isstring(luaInterface, 1)){
@@ -556,7 +561,10 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     }else{
         ret = "null";
     }
+    onnGas = lua_getGas();
+    lua_resetGas();
     lua_settop(luaInterface,0);
+    BUG << pFunction << onnGas;
     if(ret.left(4) == "fail")
         return false;
     return true;
@@ -1226,7 +1234,7 @@ void onnObject::onDeployOld(QByteArray pData){
 //    }
     code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
-    luaL_openlibs(luaInterface);
+    luaL_openlibs1(luaInterface);
     luaL_dostring(luaInterface,code.toLatin1().data());
     QString result;
     QString resultInit;
@@ -1654,7 +1662,7 @@ void onnObject::onDeployNew(QByteArray pData){
 //    }
     code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
-    luaL_openlibs(luaInterface);
+    luaL_openlibs1(luaInterface);
     luaL_dostring(luaInterface,code.toLatin1().data());
     QString result;
     QString resultInit;
@@ -1956,7 +1964,7 @@ void onnObject::onCustomRequire(QString contractID, QString addr, QString cmd, Q
         BUG << "fail: falg == false";
         return;
     }
-    BUG << cmd;
+    //BUG << cmd;
     if(cmd=="newblock"){
         //emit doBlockNew(data.toLatin1());
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,data.toLatin1());

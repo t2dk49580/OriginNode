@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <leveldb/db.h>
-#include <lua5.3/lua.hpp>
+//#include <lua5.3/lua.hpp>
+#include "ovm/lua.hpp"
 #include "onnDefine.h"
 #include "ssl/num_openssl.h"
 #include "ssl/field.h"
@@ -86,7 +87,7 @@ public:
 
     static QString doGetRandom();
     static QString doGetRandom(int);
-    static bool _doMethod(lua_State *,QString,QString,QString,QString &);
+    static bool _doMethod (lua_State *,QString,QString,QString,QString &);
     static bool _doMethodW(lua_State *,QString,QString,QString,QString &);
     static bool _doMethodR(lua_State *,QString,QString,QString,QString &);
     static QByteArray doMethodGet(QByteArray pMsg);

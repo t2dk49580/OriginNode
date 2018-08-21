@@ -151,11 +151,10 @@ function joinGame()
     end
 end
 
-function play(pData)
+function getPlay(pData)
     print('play',#gQueue,pData)
     table.insert(gQueue, pData)
     --return _getResult(gUser,'play',true,pData)
-    return 'fail'
 end
 
 function getTick(pIndex)

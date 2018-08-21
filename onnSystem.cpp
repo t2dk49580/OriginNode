@@ -59,5 +59,7 @@ void onnSystem::onStartFinish(){
     CONN(blockHttpd,SIGNAL(doMethodNew(QByteArray)),blockContract,SLOT(onMethodNew(QByteArray)));
     CONN(blockHttpd,SIGNAL(doPeerNew(QByteArray)),blockContract,SLOT(onPeerNew(QByteArray)));
 
-    timerCustom->start(timeoutStep);
+    if(!getArgument("-t").isEmpty() && !getArgument("-s").isEmpty()){
+        timerCustom->start(timeoutStep);
+    }
 }
