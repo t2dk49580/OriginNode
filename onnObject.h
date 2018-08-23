@@ -25,8 +25,11 @@ class onnObject : public QObject
 {
     Q_OBJECT
 public:
-    explicit onnObject();
+    explicit onnObject(QString);
     virtual ~onnObject();
+
+public:
+    QString objType;
 
 public:
     virtual void init();

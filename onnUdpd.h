@@ -13,7 +13,7 @@ public:
 signals:
 
 public slots:
-
+    void onStart();
 };
 
 #endif // ONNUDPD_H

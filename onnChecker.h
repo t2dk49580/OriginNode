@@ -13,6 +13,7 @@ public:
 signals:
 
 public slots:
+    void onStart();
 };
 
 #endif // ONNCHECKER_H

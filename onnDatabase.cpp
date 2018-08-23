@@ -1,6 +1,6 @@
 #include "onnDatabase.h"
 
-onnDatabase::onnDatabase(){
+onnDatabase::onnDatabase():onnObject("onnDatabase"){
 
 }
 
@@ -9,7 +9,7 @@ void onnDatabase::onStart(){
     if(getDatabaseBlock("0-0") == "null"){
         setDatabaseBlock("0-0",getBlock0());
         emit doBlockOld(getDatabaseBlock("0-0"));
-        emit doStartFinish();
+        //emit doStartFinish();
         return;
     }
     setDatabaseBlock("0-0",getBlock0());

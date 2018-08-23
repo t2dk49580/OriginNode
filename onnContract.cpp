@@ -1,6 +1,6 @@
 #include "onnContract.h"
 
-onnContract::onnContract(){
+onnContract::onnContract():onnObject("onnContract"){
 
 }
 

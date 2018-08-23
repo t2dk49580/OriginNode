@@ -29,7 +29,8 @@ QStringList onnBlackList;
 QReadWriteLock onnRWlock;
 int onnGas = 0;
 
-onnObject::onnObject(){
+onnObject::onnObject(QString pType){
+    objType = pType;
     flagStart = false;
 }
 onnObject::~onnObject(){}

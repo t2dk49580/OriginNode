@@ -1,7 +1,7 @@
 #include "onnHttpd.h"
 #include <handy/handy.h>
 
-onnHttpd::onnHttpd(){
+onnHttpd::onnHttpd():onnObject("onnHttpd"){
 
 }
 
@@ -52,13 +52,14 @@ void onnHttpd::runHttpd(int pPort){
 }
 
 void onnHttpd::onStart(){
+    onnObject *senderObj = qobject_cast<onnObject *>(sender());
     flagStart = true;
     emit doStartFinish();
     if(!getArgument("-p").isEmpty()){
-        std::cout << "httpd start" << std::endl;
-        runHttpd(getArgument("-p").toInt());
-        //QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,getArgument("-p").toInt());
+        std::cout << "httpd start:" << senderObj->objectName().toStdString() << " " << senderObj->objType.toStdString() <<std::endl;
+        //runHttpd(getArgument("-p").toInt());
+        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,getArgument("-p").toInt());
     }else{
-        std::cout << "httpd stop" << std::endl;
+        std::cout << "httpd stop" << senderObj->objectName().toStdString() << " " << senderObj->objType.toStdString() <<std::endl;
     }
 }

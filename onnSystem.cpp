@@ -9,7 +9,7 @@ extern onnWebsocketd   *blockWebsocketd;
 
 extern QTimer *timerCustom;
 
-onnSystem::onnSystem(){
+onnSystem::onnSystem():onnObject("onnSystem"){
 
 }
 

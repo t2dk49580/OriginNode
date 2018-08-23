@@ -1,6 +1,6 @@
 #include "onnWebsocketd.h"
 
-onnWebsocketd::onnWebsocketd(){
+onnWebsocketd::onnWebsocketd():onnObject("onnWebsocketd"){
 
 }
 
