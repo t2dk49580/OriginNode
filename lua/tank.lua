@@ -4,16 +4,16 @@ json = require 'json'
 
 gUser    = nil
 gOwner   = nil
-gName    = 'TANK DEMO'
+gName    = 'TANK'
 gSymbol  = 'TANK'
 gIcon    = ''
 gTimeout = 0
 gPlayer  = {}
 gPlayerMax = 2
 gBalance = {}
-gTotal   = 10000
+gTotal   = 100000000
+gRoom    = {}
 gQueue   = {}
-gTotal   = 10000000
 gTick    = {}
 gPlayerNum = 0
 gMsg     = {}
@@ -94,123 +94,3 @@ function _getResult(pUser,pMethod,pResult,pMsg)
     local result = _addResult(pUser,pMethod,pResult,pMsg,buffer)
     return json.encode(result)
 end
-
-function getPlayer()
-    local curResult = {}
-    curResult['method']  = 'getPlayer'
-    curResult['data']    = gPlayer
-    curResult['max']     = gPlayerMax
-    return json.encode(curResult)
-end
-
-function timeout()
-    --if gUser ~= gOwner then
-    --    return 'fail'
-    --end
-    print('timeout')
-    if gPlayerNum < gPlayerMax then
-        return 'fail'
-    end
-    gTimeout = gTimeout+1
-    local curQueue = _clone(gQueue)
-    gQueue = {}
-    table.insert( gTick, curQueue )
-    return 'fail'
-end
-
-function _timeout()
-    print('system timeout')
-    if gPlayerNum < gPlayerMax then
-        return 'null'
-    end
-    gTimeout = gTimeout+1
-    local curQueue = _clone(gQueue)
-    gQueue = {}
-    table.insert( gTick, curQueue )
-    return 'null'
-end
-
-function setPlayerMax(pMax)
-    if gUser ~= gOwner then
-        return 'fail'
-    end
-    gPlayerMax = tonumber(pMax)
-    return _getResult('*','setPlayerMax',true,pMax)
-end
-
-function joinGame()
-    if gPlayerNum >= gPlayerMax then
-        return 'fail'
-    end
-    gPlayerNum = gPlayerNum+1
-    table.insert(gPlayer,gUser)
-    if #gPlayer >= gPlayerMax then
-        return _getResult('*','startGame',true,gPlayer)
-    else
-        return _getResult('*','joinGame',true,gUser)
-    end
-end
-
-function getPlay(pData)
-    print('play',#gQueue,pData)
-    table.insert(gQueue, pData)
-    --return _getResult(gUser,'play',true,pData)
-end
-
-function getTick(pIndex)
-    local curResult = {}
-    curResult['index'] = tonumber(pIndex)
-    curResult['method']  = 'getTick'
-    if tonumber(pIndex) >= #gTick+1 then
-        return json.encode(curResult)
-    end
-    curResult['data']  = gTick[tonumber(pIndex)]
-    return json.encode(curResult)
-end
-
-function getStat()
-    local curResult = {}
-    curResult['method']  = 'getStat'
-    if gPlayerNum < gPlayerMax then
-        return json.encode(curResult)
-    end
-    curResult['data']  = gPlayer
-    return json.encode(curResult)
-end
-
-function closeGame()
-    gPlayer = {}
-    gTimeout = 0
-    gQueue = {}
-    gTick = {}
-    gPlayerNum = 0
-    return _getResult(gUser,'closeGame',true,0)
-end
-
-_setUser('root')
-print(init())
-_setUser('user1')
-print(joinGame())
-
-_setUser('user2')
-print(joinGame())
-
-print(getStat())
-
-_setUser('user1')
-print(play('{"ID":"User1","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
-
-_setUser('user2')
-print(play('{"ID":"User2","CMDS":[{"Vertical":1.0,"Horizontal":-0.6000000238418579,"Fire":false}'))
-
-_setUser('root')
-print(timeout())
-print(getTick('1'))
-print(getTick('10'))
-print(gPlayerNum)
-print(getPlayer())
-closeGame()
-print(gPlayerNum)
-print(getStat())
-print(getTick('1'))
-

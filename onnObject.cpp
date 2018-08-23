@@ -1126,6 +1126,10 @@ void onnObject::onBlockOld(QByteArray pData){
                                                   curBlock.blockData+\
                                                   curBlock.blockMaker).toHex();
     BUG << curBlock.blockIndex << pubkey << data << sign;
+    if(code == "init"){
+        BUG << "bad block old: can not call init" << name;
+        return;
+    }
     if(getVerify(pubkey,data,sign)){
         BUG << "msg fail: verify fail" << pData;
         return;
@@ -1542,6 +1546,10 @@ void onnObject::onBlockNew(QByteArray pData){
         return;
     }
 */
+    if(code == "init"){
+        BUG << "bad block new: can not call init" << name;
+        return;
+    }
     if(!getVerify(pubkey,data,sign)){
         BUG << "msg fail: verify fail" << pData;
         return;
