@@ -76,6 +76,8 @@ int main(int argc, char *argv[])
     CONN(blockChecker,SIGNAL(doDeployOld(QByteArray)),blockContract,SLOT(onDeployOld(QByteArray)));
     CONN(blockChecker,SIGNAL(doMethodOld(QByteArray)),blockContract,SLOT(onMethodOld(QByteArray)));
     CONN(blockChecker,SIGNAL(doPeerOld(QByteArray)),blockContract,SLOT(onPeerOld(QByteArray)));
+    CONN(blockChecker,SIGNAL(doDestroyNew(QByteArray)),blockContract,SLOT(onDestroyNew(QByteArray)));
+    CONN(blockChecker,SIGNAL(doDestroyOld(QByteArray)),blockContract,SLOT(onDestroyOld(QByteArray)));
 
     CONN(blockContract,SIGNAL(doDeployNewOK(QByteArray,QByteArray)),blockDatabase,SLOT(onDeployNewOK(QByteArray,QByteArray)));
     CONN(blockContract,SIGNAL(doDeployOldOK(QByteArray,QByteArray)),blockDatabase,SLOT(onDeployOldOK(QByteArray,QByteArray)));
@@ -83,6 +85,8 @@ int main(int argc, char *argv[])
     CONN(blockContract,SIGNAL(doMethodOldOK(QByteArray,QByteArray)),blockDatabase,SLOT(onMethodOldOK(QByteArray,QByteArray)));
     CONN(blockContract,SIGNAL(doPeerNewOK(QByteArray)),blockDatabase,SLOT(onPeerNewOK(QByteArray)));
     CONN(blockContract,SIGNAL(doPeerOldOK(QByteArray)),blockDatabase,SLOT(onPeerOldOK(QByteArray)));
+    CONN(blockContract,SIGNAL(doDestroyNewOK(QByteArray)),blockDatabase,SLOT(onDestroyNewOK(QByteArray)));
+    CONN(blockContract,SIGNAL(doDestroyOldOK(QByteArray)),blockDatabase,SLOT(onDestroyOldOK(QByteArray)));
 
     CONN(blockUdpd,SIGNAL(doBlockOld(QByteArray)),blockChecker,SLOT(onBlockOld(QByteArray)));
 

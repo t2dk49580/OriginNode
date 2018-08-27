@@ -602,7 +602,7 @@ QByteArray onnObject::doMethodGet(QByteArray pMsg){
         QString lc = "method fail: contract not exist";
         return lc.toLatin1();
     }
-    _doMethodW(getContract(contract.toLatin1()),method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
+    _doMethodR(getContract(contract.toLatin1()),method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
     return result.toLatin1();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1162,6 +1162,18 @@ void onnObject::onBlockOld(QByteArray pData){
             return;
         }
         emit doPeerOld(pData);
+    }else if(type == "destroy"){
+        if(!hasContract(name)){
+            BUG << "bad destroy: contract not exist" << name;
+            return;
+        }
+        if(maker != getBoss("0")){
+            BUG << "bad destroy: maker != boss 0" << maker << getBoss("0");
+            return;
+        }
+        emit doDestroyOld(pData);
+    }else{
+        BUG << "unknow type" << type;
     }
 }
 void onnObject::onDestroyOld(QByteArray pData){
@@ -1169,7 +1181,7 @@ void onnObject::onDestroyOld(QByteArray pData){
     if(flagStart){
         QByteArray curHash = GETSHA256(curBlock.blockData);
         if(getDatabaseBlock(curHash) != "null"){
-            BUG << "bad deploy old: hash data exist" << curHash;
+            BUG << "bad destroy old: hash data exist" << curHash;
             return;
         }else{
             setDatabaseBlock(curHash,curHash);
@@ -1184,12 +1196,7 @@ void onnObject::onDestroyOld(QByteArray pData){
         BUG << "bad destroy: contract not exist" << name;
         return;
     }
-    if(getBoss("0") != onnObjectKey.address){
-        BUG << "send to boss" << name << getBoss("0");
-        emit doCustomRequire(name,getBoss("0"),"newblock",pData);
-        return;
-    }
-    if(!doOnnDestroy(arg,key)){
+    if(!doOnnDestroy(name,key)){
         BUG << "doOnnDestroy fail";
         return;
     }
@@ -1578,6 +1585,7 @@ void onnObject::onBlockNew(QByteArray pData){
             BUG << "bad destroy: contract not exist" << name;
             return;
         }
+        emit doDestroyNew(pData);
     }else{
         BUG << "Unknow" << name << type;
     }
@@ -1598,11 +1606,11 @@ void onnObject::onDestroyNew(QByteArray pData){
         return;
     }
     if(getBoss("0") != onnObjectKey.address){
-        BUG << "send to boss" << name << getBoss("0");
+        BUG << "send to boss 0" << getBoss("0");
         emit doCustomRequire(name,getBoss("0"),"newblock",pData);
         return;
     }
-    if(!doOnnDestroy(arg,key)){
+    if(!doOnnDestroy(name,key)){
         BUG << "doOnnDestroy fail";
         return;
     }

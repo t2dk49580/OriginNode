@@ -26,8 +26,12 @@ end
 
 function init()
     gOwner = gUser
-    regTankType('tank0')
-    regGameType('3v3','team','map0','6')
+    regTankType('light')
+    regTankType('naive')
+    regTankType('mid')
+    regTankType('heavy')
+    regGameType('1v1','all','map0','2')
+    regGameType('3v3','all','map0','6')
     return 'ok'
 end
 
@@ -100,22 +104,21 @@ function _getResult(pUser,pMethod,pResult,pMsg)
 end
 
 function _timeout()
-    if #gStarting == 0 then
-        return 'fail 0'
-    end
-
-    for key in pairs(gStarting) do
+    local key,v
+    print(json.encode(gStarting))
+    for key,v in pairs(gStarting) do
         local curKey = tostring(key)
-        gRoom[curKey]['tick'] = {}
+        print(curKey)
         gRoom[curKey]['time'] = gRoom[curKey]['time']+1
         local curQueue = {}
         if #gRoom[curKey]['queue'] > 0 then
             curQueue = _clone(gRoom[curKey]['queue'])
         end
         gRoom[curKey]['queue'] = {}
+        gRoom[curKey]['time'] = gRoom[curKey]['time']+1
         table.insert( gRoom[curKey]['tick'], curQueue )
     end
-    return 'fail 1'
+    return 'system timeout'
 end
 
 function regGameType(pTypeID,pFightID,pMapID,pPlayerMax)
@@ -129,6 +132,13 @@ function regGameType(pTypeID,pFightID,pMapID,pPlayerMax)
     return 'ok'
 end
 
+function getGameType()
+    local curResult = {}
+    curResult['method'] = 'getGameType'
+    curResult['data'] = gGameType
+    return json.encode(curResult)
+end
+
 function regTankType(pTypeID)
     if gTankType[pTypeID] ~= nil then
         return 'fail'
@@ -137,13 +147,23 @@ function regTankType(pTypeID)
     return 'ok'
 end
 
+function getTankType()
+    local curResult = {}
+    curResult['method'] = 'getTankType'
+    curResult['data'] = gTankType
+    return json.encode(curResult)
+end
+
 function _regPlayer()
     if gPlayer[gUser] ~= nil then
         return 'fail'
     end
     gPlayer[gUser] = {}
     gPlayer[gUser]['balance'] = 0
-    gPlayer[gUser]['tank0'] = true;
+    gPlayer[gUser]['naive'] = true;
+    gPlayer[gUser]['mid'] = true;
+    gPlayer[gUser]['heavy'] = true;
+    gPlayer[gUser]['light'] = true;
     gPlayer[gUser]['room']  = '0'
     return 'ok'
 end
@@ -157,46 +177,45 @@ function _createRoom(pGameType)
     gRoom[curIndex]['data'] = {}
     gRoom[curIndex]['queue']= {}
     gRoom[curIndex]['tick'] = {}
+    gRoom[curIndex]['player'] = {}
     gRoom[curIndex]['time'] = 0
     gRoom[curIndex]['playercount'] = 1
     --gRoomIndex = tostring(tonumber(gRoomIndex) + 1)
-    print(json.encode(gRoom[curIndex]))
-    print(json.encode(gRoom['1']))
     return curIndex
 end
 
 function _joinRoom(pRoomIndex)
-    local curGameType = gRoom[pRoomIndex][type]
-    local curPlayerMax= gGameType[curGameType]
+    local curGameType = gRoom[pRoomIndex]['type']
+    local curPlayerMax= gGameType[curGameType]['playermax']
     gRoom[pRoomIndex]['playercount'] = gRoom[pRoomIndex]['playercount']+1
     if gRoom[pRoomIndex]['playercount'] >= curPlayerMax then
         gRoom[pRoomIndex]['stat'] = 'start'
-        table.insert( gStarting, pRoomIndex )
+        gStarting[pRoomIndex] = true
     end
 end
 
 function joinGame(pName,pGameType,pTankType,pData)
     _regPlayer()
+    print(debug.getinfo(1).currentline,debug.getinfo(1).name,pName,pGameType,pTankType,pData)
     if gGameType[pGameType] == nil then
-        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name,pGameType)
         return 'fail'
     end
     if gTankType[pTankType] == nil then
-        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name,pTankType)
         return 'fail'
     end
     if gPlayer[gUser][pTankType] == nil then
-        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name,gPlayer[gUser][pTankType])
         return 'fail'
     end
     if gPlayer[gUser]['room'] ~= '0' then
-        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name,gPlayer[gUser]['room'])
         return 'fail'
     end
     local curRoomIndex = '1'
     if gRoom[gRoomIndex] == nil then
         curRoomIndex = _createRoom(pGameType)
-        print(json.encode(gRoom['1']))
     else
         if gRoom[gRoomIndex]['stat'] == 'wait' then
             curRoomIndex = gRoomIndex
@@ -208,32 +227,93 @@ function joinGame(pName,pGameType,pTankType,pData)
     end
     gPlayer[gUser]['room'] = tostring(curRoomIndex)
     table.insert(gRoom[curRoomIndex]['data'], pData)
+    table.insert(gRoom[curRoomIndex]['player'], gUser)
     return curRoomIndex
 end
 
 function getRoom(pRoomID)
-    return json.encode(gRoom[pRoomID])
+    local curResult = {}
+    curResult['method'] = 'getRoom'
+    curResult['data'] = gRoom[pRoomID]
+    return json.encode(curResult)
 end
 
 function getStat()
     local curResult = {}
     curResult['owner'] = gUser
+    curResult['method'] = 'getStat'
     curResult['room']  = gPlayer[gUser]['room']
+    print(debug.getinfo(1).currentline,debug.getinfo(1).name)
     if curResult['room'] ~= '0' then
         curResult['stat'] = gRoom[curResult['room']]['stat']
         curResult['playercount'] = gRoom[curResult['room']]['playercount']
+        curResult['data'] = gRoom[curResult['room']]['data']
     end
     return json.encode(curResult)
 end
 
-_setUser('1234')
-init()
-regTankType('tank1')
-regTankType('tank2')
+function getPlay(pData)
+    local curRoom = gPlayer[gUser]['room']
+    if curRoom == '0' then
+        return 'null'
+    end
+    if gRoom[curRoom]['stat'] ~= 'start' then
+        return 'null'
+    end
+    table.insert( gRoom[curRoom]['queue'], pData )
+    return 'null'
+end
 
-print(joinGame('user0','3v3','tank0','{user0-data}'))
+function getTick(pIndex)
+    local curResult = {}
+    curResult['index'] = tonumber(pIndex)
+    curResult['method']  = 'getTick'
+    local curRoom = gPlayer[gUser]['room']
+    if curRoom == '0' then
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        curResult['reason'] = 'player room == 0'
+        return json.encode(curResult)
+    end
+    if tonumber(pIndex) >= #gRoom[curRoom]['tick']+1 then
+        curResult['reason'] = pIndex..'>='..tostring(#gRoom[curRoom]['tick']+1)
+        return json.encode(curResult)
+    end
+    curResult['data']  = gRoom[curRoom]['tick'][tonumber(pIndex)]
+    return json.encode(curResult)
+end
+
+function closeGame()
+    local curRoom = gPlayer[gUser]['room']
+    if curRoom == '0' then
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        return 'fail'
+    end
+    if gRoom[curRoom]['stat'] ~= 'start' then
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        return 'fail'
+    end
+    for key in pairs(gRoom[curRoom]['player']) do
+        gPlayer[gRoom[curRoom]['player'][key]]['room'] = '0'
+    end
+    gStarting[curRoom] = nil
+    gRoom[curRoom] = nil
+    return 'ok'
+end
+
+_setUser('1111')
+init()
+
+_setUser('1111')
+print(joinGame('user0','1v1','naive','{user0-data}'))
+_setUser('2222')
+print(joinGame('user1','1v1','naive','{user1-data}'))
 
 print(getStat())
 print(getRoom('1'))
-table.insert( gStarting,'1' )
+print(getPlay('haha1'))
 print(_timeout())
+print(getPlay('haha2'))
+print(_timeout())
+print(getTick('1'))
+print(getTick('2'))
+print(closeGame())
