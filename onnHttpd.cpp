@@ -52,6 +52,9 @@ void onnHttpd::runHttpd(int pPort){
 }
 
 void onnHttpd::onStart(){
+    if(flagStart){
+        return;
+    }
     onnObject *senderObj = qobject_cast<onnObject *>(sender());
     flagStart = true;
     emit doStartFinish();

@@ -16,6 +16,9 @@ void onnWebsocketd::runWebsocketd(int pPort){
 }
 
 void onnWebsocketd::onStart(){
+    if(flagStart){
+        return;
+    }
     if(!getArgument("-ws").isEmpty()){
         std::cout << "websocketd start" << std::endl;
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnWebsocketd::runWebsocketd,getArgument("-ws").toInt());

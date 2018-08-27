@@ -632,7 +632,7 @@ bool onnObject::checkBlockIndexAndHash(QString pName,onnBlock curBlock){
         return true;
     }
     if(curBlock.blockIndex.toLongLong()<=getBlock(pName).blockIndex.toLongLong()){
-        BUG << "msg fail: curBlock.blockIndex<getBlock(pName).blockIndex" << pName;
+        BUG << "msg fail: curBlock.blockIndex<=getBlock(pName).blockIndex" << pName;
         return false;
     }else if(curBlock.blockIndex.toLongLong()>getBlock(pName).blockIndex.toLongLong()+1){
         BUG << "msg fail: curBlock.blockIndex>getBlock(pName).blockIndex+1" << curBlock.blockIndex << getBlock(pName).blockIndex;
@@ -655,7 +655,7 @@ bool onnObject::checkBlockIndexAndHashDeploy(QString pName,onnBlock prvBlock,onn
         return true;
     }
     if(curBlock.blockIndex.toLongLong()<=prvBlock.blockIndex.toLongLong()){
-        BUG << "msg fail: curBlock.blockIndex<prvBlock.blockIndex" << pName;
+        BUG << "msg fail: curBlock.blockIndex<=prvBlock.blockIndex" << pName;
         return false;
     }else if(curBlock.blockIndex.toLongLong()>prvBlock.blockIndex.toLongLong()+1){
         BUG << "msg fail: curBlock.blockIndex>prvBlock.blockIndex+1" << curBlock.blockIndex << getBlock(pName).blockIndex;
