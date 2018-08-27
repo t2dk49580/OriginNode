@@ -15,7 +15,6 @@ NetSync *onnSync = new NetSync();
 QStringList onnPeerList;
 QStringList onnPeerLose;
 QTimer *onnTimer = new QTimer();
-QByteArray contractHead = "_G['os'] = nil\n_G['io'] = nil\njson = require 'json'\n";
 QList<QByteArray> onnWebsocketAddress;
 QList<QByteArray> onnWebsocketPeers;
 QHash<QString,onnSyncQueue> onnSyncData;
@@ -1231,20 +1230,17 @@ void onnObject::onDeployOld(QByteArray pData){
         return;
     }
     QString code;
-    if(codeHex.contains("u")){
+    if(codeHex.contains("i")){
         code = codeHex;
     }else{
         code = QByteArray::fromHex(codeHex.toLatin1());
     }
+    if(code.contains("_G") && name != "0"){
+        BUG << "bad deploy: contains _G" << name;
+        return;
+    }
     QString codeCost = QString::number(code.count()*2);
-//    if(!getContracts().isEmpty()){
-//        QString transferResult = doOnnTransfer(key.toLatin1(),getOnnBossOwner("0"),codeCost.toLatin1());
-//        if(transferResult=="fail"){
-//            BUG << "bad deploy: 0 not enough" << codeCost;
-//            return;
-//        }
-//    }
-    code.push_front(contractHead);
+    //code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
     luaL_openlibs1(luaInterface);
     luaL_dostring(luaInterface,code.toLatin1().data());
@@ -1651,7 +1647,7 @@ void onnObject::onDeployNew(QByteArray pData){
         return;
     }
     QString code;
-    if(codeHex.contains("u")){
+    if(codeHex.contains("i")){
         code = codeHex;
     }else{
         code = QByteArray::fromHex(codeHex.toLatin1());
@@ -1660,24 +1656,18 @@ void onnObject::onDeployNew(QByteArray pData){
         BUG << "bad deploy: contains _G" << name;
         return;
     }
+    /*
     if(code.contains("require")){
         BUG << "bad deploy: contains require" << name;
         return;
     }
+    */
     if(hasSyncQueueRequest("0")){
         BUG << "bad deploy: hasSyncQueueRequest 0";
         return;
     }
     QString codeCost = QString::number(code.count()*2);
-//    if(!getContracts().isEmpty()){
-//        QString codeCost = QString::number(code.count()*2);
-//        QString transferResult = doOnnTransfer(key.toLatin1(),getOnnBossOwner("0"),codeCost.toLatin1());
-//        if(transferResult=="fail"){
-//            BUG << "bad deploy: 0 not enough" << codeCost;
-//            return;
-//        }
-//    }
-    code.push_front(contractHead);
+    //code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
     luaL_openlibs1(luaInterface);
     luaL_dostring(luaInterface,code.toLatin1().data());
@@ -1687,14 +1677,6 @@ void onnObject::onDeployNew(QByteArray pData){
         lua_close(luaInterface);
         return;
     }
-    /*
-    QStringList curPeerList = getHaveBalanceWorker0(getPeerList(),10000);
-    curPeerList = getOnlyWork(curPeerList);
-    if(!curPeerList.isEmpty())
-        setBoss(name.toLatin1(),curPeerList.at(doGetRandom(curPeerList.count()).toInt()-1).toLatin1());
-    else
-        setBoss(name.toLatin1(),onnObjectKey.address);
-    */
     QString curTotal;
     if(_doMethodR(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
