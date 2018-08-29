@@ -35,7 +35,7 @@ void onnContract::onTimeout(){
     lua_State *curAPI = getContract(timeoutContract.toLatin1());
     if(!curAPI){
         BUG << "fail: _timeout API == null, timer stop";
-        emit timerStop();
+        //emit timerStop();
         return;
     }
     if(!_doMethodW(curAPI,"_timeout","",getAddress(),timeoutResult)){
