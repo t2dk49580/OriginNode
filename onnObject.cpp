@@ -11,7 +11,7 @@ QStringList onnReadableContract;
 QHash<QString,onnBossBlock> *onnBlockChain = new QHash<QString,onnBossBlock>;
 QHash<QString,lua_State *> *onnObjectContract = new QHash<QString,lua_State *>;
 Hub *onnWebsocket = new Hub();
-NetSync *onnSync = new NetSync();
+NetSync *onnSync;
 QStringList onnPeerList;
 QStringList onnPeerLose;
 QTimer *onnTimer = new QTimer();
@@ -355,6 +355,7 @@ QByteArray onnObject::doHandlerGet(QByteArray pData){
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initArgv(int argc, char *argv[]){
+    QString onnVersion = "0.9.1.4";
     if(argc>1){
         for(int i=1;i<argc;i=i+2){
             if(i+1>argc)
@@ -367,9 +368,14 @@ void onnObject::initArgv(int argc, char *argv[]){
         cout << "    -p     RPC listen port, default 3000" << endl;
         cout << "    -ws    websocket listen port, default 3001" << endl;
         cout << "    -i     import a key file, default key.ini" << endl;
-        cout << "    -t     enable timer for run smartcontract function _timeout()" << endl;
+        cout << "    -t     set contract name, enable timer for run contract function _timeout()" << endl;
         cout << "    -s     set msec timer step when you use -t" << endl;
+        cout << "    -v     show version" << endl;
         cout << "    -h     show this info" << endl;
+        exit(1);
+    }
+    if(onnArgument.contains("-v")){
+        cout << onnVersion.toStdString() << endl;
         exit(1);
     }
 }
@@ -759,7 +765,7 @@ QStringList onnObject::getOnlyWork(QStringList pList){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initNetSync(){
-    //onnSync = new NetSync();
+    onnSync = new NetSync();
     onnSync->Init(GETADDR(getPubkey()));
 }
 NetSync *onnObject::getNetSync(){
