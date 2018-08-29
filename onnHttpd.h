@@ -16,6 +16,8 @@ signals:
 
 public slots:
     void onStart();
+private:
+    QStringList mMethod;
 };
 
 #endif // ONNHTTPD_H

@@ -26,6 +26,7 @@ QStringList onnClientList;
 QMultiHash<QByteArray,QByteArray> onnChangeBossData;
 QStringList onnBlackList;
 QReadWriteLock onnRWlock;
+QMutex onnLock;
 int onnGas = 0;
 
 onnObject::onnObject(QString pType){
@@ -523,7 +524,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     lua_pushstring(luaInterface, pkey.toLatin1().data());
     if(lua_pcall(luaInterface, 1, 1, 0) != 0){
         BUG << "error _setUser" << lua_tostring(luaInterface,-1);
-        ret = "error lua_pcall _setUser";
+        ret = QString("error lua_pcall _setUser ")+QString(__LINE__)+","+pFunction+","+pArg+","+pkey;
         onnGas = lua_getGas();
         lua_resetGas();
         return false;
@@ -547,7 +548,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     //PrintLuaStack(luaInterface);
     if(lua_pcall(luaInterface, arglen, 1, 0) != 0){
         BUG << "error lua_pcall" << pFunction << pArg << lua_tostring(luaInterface,-1);;
-        ret = "error lua_pcall function";
+        ret = QString("error lua_pcall _setUser ")+QString(__LINE__)+","+pFunction+","+pArg+","+pkey;
         onnGas = lua_getGas();
         lua_resetGas();
         return false;
@@ -564,25 +565,29 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     onnGas = lua_getGas();
     lua_resetGas();
     lua_settop(luaInterface,0);
-    BUG << pFunction << onnGas;
+    //BUG << pFunction << onnGas;
     if(ret.left(4) == "fail")
         return false;
     return true;
 }
 bool onnObject::_doMethodW(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
-    onnRWlock.lockForWrite();
+    //onnRWlock.lockForWrite();
+    onnLock.lock();
     bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
-    onnRWlock.unlock();
+    onnLock.unlock();
+    //onnRWlock.unlock();
     return result;
 }
 bool onnObject::_doMethodR(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
-    onnRWlock.lockForRead();
+    //onnRWlock.lockForRead();
+    onnLock.lock();
     bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
-    onnRWlock.unlock();
+    onnLock.unlock();
+    //onnRWlock.unlock();
     return result;
 }
 QByteArray onnObject::doMethodGet(QByteArray pMsg){
-    BUG << pMsg;
+    //BUG << pMsg;
     QList<QByteArray> msgList = pMsg.split('$');
     if(msgList.count()<4){
         QString lc = "msgList.count()<4";
@@ -754,6 +759,7 @@ QStringList onnObject::getOnlyWork(QStringList pList){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initNetSync(){
+    //onnSync = new NetSync();
     onnSync->Init(GETADDR(getPubkey()));
 }
 NetSync *onnObject::getNetSync(){

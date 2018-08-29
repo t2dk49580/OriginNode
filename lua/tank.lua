@@ -1,5 +1,3 @@
-_G['os'] = nil
-_G['io'] = nil
 json = require 'json'
 
 gUser    = nil
@@ -165,6 +163,7 @@ function _regPlayer()
     gPlayer[gUser]['heavy'] = true;
     gPlayer[gUser]['light'] = true;
     gPlayer[gUser]['room']  = '0'
+    gPlayer[gUser]['playcount'] = 0
     return 'ok'
 end
 
@@ -179,6 +178,7 @@ function _createRoom(pGameType)
     gRoom[curIndex]['tick'] = {}
     gRoom[curIndex]['player'] = {}
     gRoom[curIndex]['time'] = 0
+    gRoom[curIndex]['playcount'] = 0
     gRoom[curIndex]['playercount'] = 1
     --gRoomIndex = tostring(tonumber(gRoomIndex) + 1)
     return curIndex
@@ -231,6 +231,10 @@ function joinGame(pName,pGameType,pTankType,pData)
     return curRoomIndex
 end
 
+function getStartRoom()
+    return json.encode(gStarting)
+end
+
 function getRoom(pRoomID)
     local curResult = {}
     curResult['method'] = 'getRoom'
@@ -252,6 +256,20 @@ function getStat()
     return json.encode(curResult)
 end
 
+function getUserStat(pUser)
+    local curResult = {}
+    curResult['owner'] = pUser
+    curResult['method'] = 'getStat'
+    curResult['room']  = gPlayer[pUser]['room']
+    print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+    if curResult['room'] ~= '0' then
+        curResult['stat'] = gRoom[curResult['room']]['stat']
+        curResult['playercount'] = gRoom[curResult['room']]['playercount']
+        curResult['data'] = gRoom[curResult['room']]['data']
+    end
+    return json.encode(curResult)
+end
+
 function getPlay(pData)
     local curRoom = gPlayer[gUser]['room']
     if curRoom == '0' then
@@ -260,6 +278,7 @@ function getPlay(pData)
     if gRoom[curRoom]['stat'] ~= 'start' then
         return 'null'
     end
+    gPlayer[gUser]['playcount'] = gPlayer[gUser]['playcount']+1
     table.insert( gRoom[curRoom]['queue'], pData )
     return 'null'
 end
@@ -300,6 +319,24 @@ function closeGame()
     return 'ok'
 end
 
+function forceClose(pRoomID)
+    local curRoom = pRoomID
+    if curRoom == '0' then
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        return 'fail'
+    end
+    if gRoom[curRoom]['stat'] ~= 'start' then
+        print(debug.getinfo(1).currentline,debug.getinfo(1).name)
+        return 'fail'
+    end
+    for key in pairs(gRoom[curRoom]['player']) do
+        gPlayer[gRoom[curRoom]['player'][key]]['room'] = '0'
+    end
+    gStarting[curRoom] = nil
+    gRoom[curRoom] = nil
+    return 'ok'
+end
+
 _setUser('1111')
 init()
 
@@ -317,3 +354,5 @@ print(_timeout())
 print(getTick('1'))
 print(getTick('2'))
 print(closeGame())
+
+
