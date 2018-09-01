@@ -1,4 +1,5 @@
 json = require 'json'
+md5 = require 'md5'
 
 gUser    = nil
 gOwner   = nil
