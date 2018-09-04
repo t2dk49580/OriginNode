@@ -525,6 +525,18 @@ QString onnObject::doGetRandom(int pMax){
     _doMethodR(getContract("0"),"_doRand",QString::number(pMax),getPubkey(),result);
     return result;
 }
+bool onnObject::_doMethod(QString pContract,QString pFunction,QString pArg,QString pkey,QString &pResult){
+    onnLock.lock();
+    lua_State *luaInterface = getContract(pContract.toLatin1());
+    if(!luaInterface){
+        onnLock.unlock();
+        pResult = "method fail: contract not exist";
+        return false;
+    }
+    bool curResult = _doMethod(luaInterface,pFunction,pArg,pkey,pResult);
+    onnLock.unlock();
+    return curResult;
+}
 bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
     lua_getglobal(luaInterface, "_setUser");
     lua_pushstring(luaInterface, pkey.toLatin1().data());
@@ -608,11 +620,11 @@ QByteArray onnObject::doMethodGet(QByteArray pMsg){
         QString lc = "method fail: only use get method";
         return lc.toLatin1();
     }
-    if(!hasContract(contract.toLatin1())){
-        QString lc = "method fail: contract not exist";
-        return lc.toLatin1();
-    }
-    _doMethodR(getContract(contract.toLatin1()),method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
+//    if(!hasContract(contract.toLatin1())){
+//        QString lc = "method fail: contract not exist";
+//        return lc.toLatin1();
+//    }
+    _doMethod(contract,method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
     return result.toLatin1();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////

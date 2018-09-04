@@ -90,6 +90,7 @@ public:
 
     static QString doGetRandom();
     static QString doGetRandom(int);
+    static bool _doMethod (QString,QString,QString,QString,QString &);
     static bool _doMethod (lua_State *,QString,QString,QString,QString &);
     static bool _doMethodW(lua_State *,QString,QString,QString,QString &);
     static bool _doMethodR(lua_State *,QString,QString,QString,QString &);
