@@ -1341,6 +1341,15 @@ void onnObject::onMethodOld(QByteArray pData){
 void onnObject::onPeerOld(QByteArray pData){
     //BUG << pData;
     onnBlock curBlock = createBlock(pData);
+    if(flagStart){
+        QByteArray curHash = GETSHA256(curBlock.blockData);
+        if(getDatabaseBlock(curHash) != "null"){
+            BUG << "bad peer old: hash data exist" << curHash;
+            return;
+        }else{
+            setDatabaseBlock(curHash,curHash);
+        }
+    }
     if(!checkBlockIndexAndHash("0",curBlock)){
         return;
     }
@@ -1565,6 +1574,7 @@ void onnObject::onBlockNew(QByteArray pData){
     QByteArray name = listData.at(2);
     QByteArray code = listData.at(3);
     QByteArray arg = QByteArray::fromHex(listData.at(4));
+
 /*
     QByteArray curIdentityPubkey = GETADDR(getIdentity(name).toLatin1());
     if(curIdentityPubkey != onnObjectKey.address){
@@ -1769,6 +1779,11 @@ void onnObject::onMethodNew(QByteArray pData){
     }
 }
 void onnObject::onPeerNew(QByteArray pData){
+    QByteArray curHash = GETSHA256(pData);
+    if(getDatabaseBlock(curHash) != "null"){
+        BUG << "bad peer: hash data exist" << curHash;
+        return;
+    }
     if(!getPeerList().isEmpty() && !getBossMissing(getPeerList()).isEmpty()){
         BUG << "bad peer: an contract boss is missing" << getBossMissing(getPeerList());
         return;
@@ -1804,6 +1819,7 @@ void onnObject::onPeerNew(QByteArray pData){
                                     getBlock("0").blockHash,\
                                     pData);
     insertBlock("0",curBlock);
+    setDatabaseBlock(curHash,curHash);
     emit doPeerNewOK(toString(curBlock));
 }
 void onnObject::onPeerNewOK(QByteArray pData){

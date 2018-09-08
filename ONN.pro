@@ -65,13 +65,24 @@ SOURCES += \
     ovm/lundump.c \
     ovm/lutf8lib.c \
     ovm/lvm.c \
-    ovm/lzio.c
+    ovm/lzio.c \
+    uws/Epoll.cpp \
+    uws/Extensions.cpp \
+    uws/Group.cpp \
+    uws/HTTPSocket.cpp \
+    uws/Hub.cpp \
+    uws/Networking.cpp \
+    uws/Node.cpp \
+    uws/Socket.cpp \
+    uws/WebSocket.cpp
 
 include("./src/Crypto/EmccSDK/nemcc/nemcc.pri")
 include("./NetSync/netsync.pri")
 
 #LIBS += -luWS -lz -lcrypto -lssl -llua5.3 -lleveldb -lhandy
-LIBS += -luWS -lz -lcrypto -lssl -lleveldb -lhandy
+
+INCLUDEPATH += ./deps/openssl10/include
+LIBS += -lssl10 -lcrypto10 -lz -lleveldb -lhandy -ldl
 
 HEADERS += \
     onnDefine.h \
@@ -114,4 +125,18 @@ HEADERS += \
     ovm/lualib.h \
     ovm/lundump.h \
     ovm/lvm.h \
-    ovm/lzio.h
+    ovm/lzio.h \
+    uws/Asio.h \
+    uws/Backend.h \
+    uws/Epoll.h \
+    uws/Extensions.h \
+    uws/Group.h \
+    uws/HTTPSocket.h \
+    uws/Hub.h \
+    uws/Libuv.h \
+    uws/Networking.h \
+    uws/Node.h \
+    uws/Socket.h \
+    uws/uWS.h \
+    uws/WebSocket.h \
+    uws/WebSocketProtocol.h

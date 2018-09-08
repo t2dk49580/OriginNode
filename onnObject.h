@@ -14,7 +14,7 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include "emcc/uECC.h"
-#include "uWS/uWS.h"
+#include "uws/uWS.h"
 #include "netsync.h"
 
 using namespace std;
