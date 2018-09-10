@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ $# -lt 1 ];then
+	echo "must set qmake absolut path"
+	exit
+fi
+QMAKE=$1
+echo "QMAKE=$QMAKE"
+
+cd deps
+cd handy-master
+./build_config
+make
+cp libhandy.a ../lib
+cd ..
+
+cd leveldb-1.20
+make
+cp -arv out-shared/* ../lib
+cd ..
+
+cd openssl10
+./config
+make
+cp libssl.a ../lib/libssl10.a
+cp libcrypto.a ../lib/libcrypto10.a
+cd ..
+cd ..
+cd output
+$QMAKE ..
+
+export LIBRARY_PATH=../deps/lib
+export LD_LIBRARY_PATH=../deps/lib
+
+make
+cp ../0 .
+cp ../lua/json.lua .
+cp ../lua/md5.lua .
+
+mkdir opensslbuild
+cd opensslbuild
+$QMAKE ../../deps/luaopenssl
+make
+cp libopenssl.so.1.0.0 ../openssl.so

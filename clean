@@ -1,0 +1,30 @@
+#!/bin/bash
+
+cd deps
+cd handy-master
+make clean
+cd ..
+
+cd leveldb-1.20
+make clean
+cd ..
+
+cd openssl10
+make clean
+cd ..
+
+cd lib
+rm -rf db
+rm -rf helper
+rm -rf port
+rm -rf table
+rm -rf util
+rm *
+cd ..
+
+cd ..
+cd output
+
+make clean
+rm -rf opensslbuild
+rm *

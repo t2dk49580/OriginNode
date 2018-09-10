@@ -81,7 +81,7 @@ include("./NetSync/netsync.pri")
 
 #LIBS += -luWS -lz -lcrypto -lssl -llua5.3 -lleveldb -lhandy
 
-INCLUDEPATH += ./deps/openssl10/include
+INCLUDEPATH += ./deps/openssl10/include ./deps/include
 LIBS += -lssl10 -lcrypto10 -lz -lleveldb -lhandy -ldl
 
 HEADERS += \
