@@ -1022,7 +1022,10 @@ QString onnObject::setNextBoss(QString pArg){
 }
 QString onnObject::setDeployBoss(QString pArg, QString pKey){
     QString curResult;
-    _doMethodW(getContract("0"),"_setDeployBoss",pArg,pKey,curResult);
+    if(!_doMethodW(getContract("0"),"_setDeployBoss",pArg,pKey,curResult)){
+        BUG << "fail";
+        return "fail";
+    }
     if(curResult.isEmpty() || curResult.left(4) == "fail"){
         BUG << curResult;
         curResult = "fail";
@@ -1716,6 +1719,10 @@ void onnObject::onDeployNew(QByteArray pData){
         curTotal = result;
     }else{
         curTotal = "0";
+    }
+    if(curTotal == "0"){
+        lua_close(luaInterface);
+        return;
     }
     result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
     if(result == "fail"){

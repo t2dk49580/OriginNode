@@ -15,7 +15,7 @@ cd ..
 
 cd lib
 rm -rf db
-rm -rf helper
+rm -rf helpers
 rm -rf port
 rm -rf table
 rm -rf util
