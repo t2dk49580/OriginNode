@@ -40,6 +40,6 @@ void onnContract::onTimeout(){
     }
     if(!_doMethodW(curAPI,"_timeout","",getAddress(),timeoutResult)){
         BUG << "fail: _timeout return fail, timer stop";
-        emit timerStop();
+        //emit timerStop();
     }
 }
