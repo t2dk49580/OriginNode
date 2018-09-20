@@ -43,6 +43,7 @@ public:
     static void makeBlock0();
 
     static void initKey();
+    static QByteArray computePubkey(QByteArray);
     static bool hasAppkey();
     static void updAppkey(QByteArray);
     static bool hasPubkey();

@@ -30,7 +30,7 @@
 #define SETXF(A,B) QString("%1").arg(A, 0, 'f', B)
 
 #define GETMD5(A) QCryptographicHash::hash(A,QCryptographicHash::Md5).toHex()
-#define GETADDR(A) QCryptographicHash::hash(A,QCryptographicHash::Keccak_256).toHex().left(40)
+#define GETADDR(A) QCryptographicHash::hash(QByteArray::fromHex(A),QCryptographicHash::Keccak_256).toHex().right(40)
 #define GETSHA256(A) QCryptographicHash::hash(A,QCryptographicHash::Sha256).toHex()
 #define GETPSD(A) GETSHA256(GETMD5(A))
 #define CONN(A,B,C,D) QObject::connect(A,B,C,D,Qt::QueuedConnection)

@@ -32,18 +32,16 @@ void onnHttpd::runHttpd(int pPort){
             }else{
                 resp.body = handy::Slice("null");
             }
-            con.sendResponse(resp);
-            con->close();
-            return;
         }else if(con.getRequest().method == "POST"){
             msg = (con.getRequest().body.c_str());
             con.clearData();
+            resp.body = handy::Slice(GETSHA256(msg));
             //emit doBlockNew(msg);
             QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
         }else{
+            resp.body = handy::Slice(GETSHA256(msg));
             cout << "httpd unknow method" << con.getRequest().method << endl;
         }
-        resp.body = handy::Slice(GETSHA256(msg));
         con.sendResponse(resp);
         con->close();
     });

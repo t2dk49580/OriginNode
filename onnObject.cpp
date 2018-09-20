@@ -204,6 +204,13 @@ void onnObject::initKey(){
     onnObjectKey.address = GETADDR(onnObjectKey.pubkey);
 }
 
+QByteArray onnObject::computePubkey(QByteArray pPri){
+    uint8_t pp[65] = {0};
+    uECC_compute_public_key((uint8_t *)QByteArray::fromHex(pPri).data(),pp,uECC_secp256k1());
+    QByteArray final = (char *)pp;
+    return final.toHex();
+}
+
 bool onnObject::hasAppkey(){
     if (!onnSetting->contains("appkey")){
         return false;
