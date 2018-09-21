@@ -6,8 +6,8 @@ OPT ?= -g2
 $(shell CC="$(CC)" CXX="$(CXX)" TARGET_OS="$(TARGET_OS)" ./build_config 1>&2)
 include config.mk
 
-CFLAGS += -I. $(PLATFORM_CCFLAGS) $(OPT)
-CXXFLAGS += -I. $(PLATFORM_CXXFLAGS) $(OPT)
+CFLAGS += -I. -I../include $(PLATFORM_CCFLAGS) $(OPT)
+CXXFLAGS += -I. -I../include $(PLATFORM_CXXFLAGS) $(OPT)
 
 LDFLAGS += $(PLATFORM_LDFLAGS)
 LIBS += $(PLATFORM_LIBS)

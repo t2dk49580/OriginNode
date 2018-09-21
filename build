@@ -8,6 +8,7 @@ QMAKE=$1
 echo "QMAKE=$QMAKE"
 
 cd deps
+mkdir lib
 cd handy-master
 ./build_config
 make
