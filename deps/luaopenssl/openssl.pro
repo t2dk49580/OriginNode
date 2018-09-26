@@ -144,12 +144,15 @@ unix {
 }
 
 SUBDIRS += \
+    openssl.pro \
     openssl.pro
 
 DISTFILES += \
     auxiliar/readme.md \
     src/config.ld \
     src/oids.txt \
+    openssl.pro.user \
     Makefile
-INCLUDEPATH = ../openssl11/include
+
+INCLUDEPATH += ../../deps/luaopenssl/include
 LIBS += -L../../deps/lib -lssl11 -lcrypto11 -ldl
