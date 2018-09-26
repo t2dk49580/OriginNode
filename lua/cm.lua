@@ -160,10 +160,12 @@ function _tick()
     if(isPlaying) then
         if(totalHashRate<=MinePool) then
             MinePool = MinePool - totalHashRate;
+            local key,v
             for key,v in pairs(gBalance) do
                 gBalance[key] = v + gHashRate[key]
             end
         else
+            local key,v
             for key,v in pairs(gBalance) do
                 MinePool = MinePool - gHashRate[key];
                 gBalance[key] = v + gHashRate[key]

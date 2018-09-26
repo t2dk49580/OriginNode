@@ -17,7 +17,7 @@ cd ..
 
 cd leveldb-1.20
 make
-cp -arv out-shared/* ../lib
+cp -arv out-static/* ../lib
 cd ..
 
 cd openssl10

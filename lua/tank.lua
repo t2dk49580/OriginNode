@@ -356,4 +356,7 @@ print(getTick('1'))
 print(getTick('2'))
 print(closeGame())
 
-
+local k,v
+for k,v in pairs(_G) do
+    print(string.format("%s => %s\n",k,v))
+end
