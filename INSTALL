@@ -1,4 +1,4 @@
 support OS: ubuntu-18.04
 download and install Qt5.11.1
-sudo apt install zlib1g-dev libssl-dev
+sudo apt install zlib1g-dev
 ./build "Your qmake PATH"

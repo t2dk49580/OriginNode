@@ -26,6 +26,14 @@ make
 cp libssl.a ../lib/libssl10.a
 cp libcrypto.a ../lib/libcrypto10.a
 cd ..
+
+cd openssl11
+./config
+make
+cp libssl.a ../lib/libssl11.a
+cp libcrypto.a ../lib/libcrypto11.a
+cd ..
+
 cd ..
 cd output
 $QMAKE ..

@@ -154,4 +154,4 @@ DISTFILES += \
     openssl.pro.user \
     Makefile
 
-LIBS += -lssl -lcrypto -ldl
+LIBS += -L../../deps/lib -lssl11 -lcrypto11 -ldl
