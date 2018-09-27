@@ -153,9 +153,14 @@ QByteArray onnObject::Decrypt(QByteArray pHex,QByteArray pMsg)
 QByteArray onnObject::getBlock0(){
     QFile f("0");
     f.open(QIODevice::ReadOnly);
-    QByteArray curBlock0 = f.readAll();
+    QByteArray curBlockSource = f.readAll();
     f.close();
-    return curBlock0;
+    QByteArray curBlockSource1 = doDeploy("0",curBlockSource,"6e756c6c");
+    onnBlock curBlock = createBlock(0,\
+                                    QDateTime::currentMSecsSinceEpoch(),\
+                                    GETSHA256(curBlockSource1),\
+                                    curBlockSource1);
+    return toString(curBlock);
 }
 
 void onnObject::makeBlock0(){
@@ -1308,6 +1313,9 @@ void onnObject::onDeployOld(QByteArray pData){
         BUG << "doBroadcastAppNew" << resultInit;
         emit doBroadcastAppNew(resultInit.toLatin1());
     }
+    if(getContracts().isEmpty()){
+        setBoss("0",key.toLatin1());
+    }
     emit doSetBossList(getBossAddressList());
     addContract(name.toLatin1(),luaInterface);
     insertBlock("0",curBlock);
@@ -2062,7 +2070,7 @@ void onnObject::onBossMissing(QByteArrayList pList){
 
 void onnObject::onTimeout(){
     if(!flagStart){
-        BUG << "fail: flagStart == false";
+        BUG << "fail: flagStart == false" << QThread::currentThreadId();
         return;
     }
     if(getUdpClientList().isEmpty()){

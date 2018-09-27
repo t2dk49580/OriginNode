@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
     obj->initArgv(argc,argv);
     obj->initKey();
-    obj->initBoss();
+    //obj->initBoss();
     obj->initDatabase();
     obj->initNetSync();
     obj->initWebsocketd();
