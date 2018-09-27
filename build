@@ -46,6 +46,9 @@ cp ../tools/0 .
 cp ../tools/p2p.cfg .
 cp ../lua/json.lua .
 cp ../lua/md5.lua .
+rm *.o
+rm *.cpp
+rm *.h
 
 mkdir opensslbuild
 cd opensslbuild
