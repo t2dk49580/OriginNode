@@ -14,7 +14,7 @@ onnSystem::onnSystem():onnObject("onnSystem"){
 }
 
 void onnSystem::initBoss(){
-    setBoss("0","b76883e450099de14ed93c348935b7c506f60a39");
+    setBoss("0","83ef4141dfeb7419ba965546f312c836e9fe92fa");
 }
 
 void onnSystem::onInitFinish(){

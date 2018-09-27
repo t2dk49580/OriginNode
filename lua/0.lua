@@ -1,5 +1,3 @@
-_G['os'] = nil
-_G['io'] = nil
 json = require 'json'
 gLastModify = '2018 0706 10:00'
 gUser    = nil
