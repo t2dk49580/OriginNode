@@ -21,7 +21,11 @@ onnWebsocketd   *blockWebsocketd    = new onnWebsocketd();
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount()*2);
+    int tcount = QThread::idealThreadCount()*2+1;
+    if(tcount < 5){
+        tcount = 5;
+    }
+    QThreadPool::globalInstance()->setMaxThreadCount(tcount);
     onnSystem *obj = new onnSystem();
 
     obj->initArgv(argc,argv);
@@ -29,7 +33,7 @@ int main(int argc, char *argv[])
     //obj->initBoss();
     obj->initDatabase();
     obj->initNetSync();
-    obj->initWebsocketd();
+    //obj->initWebsocketd();
 
     BUG << "info" << GETADDR(obj->getPubkey());
 #if 0

@@ -10,7 +10,7 @@ leveldb::DB *onnObjectDB;
 QStringList onnReadableContract;
 QHash<QString,onnBossBlock> *onnBlockChain = new QHash<QString,onnBossBlock>;
 QHash<QString,lua_State *> *onnObjectContract = new QHash<QString,lua_State *>;
-Hub *onnWebsocket = new Hub();
+Hub *onnWebsocket;// = new Hub();
 NetSync *onnSync;
 QStringList onnPeerList;
 QStringList onnPeerLose;
@@ -816,6 +816,7 @@ NetSync *onnObject::getNetSync(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initWebsocketd(){
+    onnWebsocket = new Hub();
     onnWebsocket->onConnection([&](uWS::WebSocket<uWS::SERVER> *ws, HttpRequest) {
         cout << ws->getAddress().address << endl;
         if(onnWebsocketAddress.contains(ws->getAddress().address)){

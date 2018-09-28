@@ -5,13 +5,14 @@ onnWebsocketd::onnWebsocketd():onnObject("onnWebsocketd"){
 }
 
 void onnWebsocketd::runWebsocketd(int pPort){
+    initWebsocketd();
     while(!getWebsocketd()->listen(pPort)){
         std::cout << "runWebsocketd fail:" << pPort << std::endl;
         QThread::sleep(1);
         //QCoreApplication::quit();
         //exit(-1);
     }
-    std::cout << "runWebsocketd fail:" << pPort << std::endl;
+    std::cout << "runWebsocketd ok:" << pPort << std::endl;
     getWebsocketd()->run();
 }
 
