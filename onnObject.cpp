@@ -230,7 +230,7 @@ QByteArray onnObject::computePubkey(QByteArray pPri){
     uint8_t pp[65] = {0};
     uECC_compute_public_key((uint8_t *)QByteArray::fromHex(pPri).data(),pp,uECC_secp256k1());
     QByteArray final = (char *)pp;
-    return final.toHex();
+    return final.left(64).toHex();
 }
 
 bool onnObject::hasAppkey(){
@@ -257,7 +257,7 @@ void onnObject::makeKey(QByteArray pHex){
     onnObjectKey.pubkey = getPublicKey();
     onnObjectKey.prikey = getPrivateKey();
     onnObjectKey.prikey = onnObjectKey.prikey.left(64);   //need use AES
-
+    onnObjectKey.pubkey = computePubkey(onnObjectKey.prikey);
     onnSetting->setValue("pubkey",onnObjectKey.pubkey);
     onnSetting->setValue("prikey",Encrypt(pHex,onnObjectKey.prikey));
 }
