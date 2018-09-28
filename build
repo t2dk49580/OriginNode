@@ -42,7 +42,6 @@ export LIBRARY_PATH=../deps/lib
 export LD_LIBRARY_PATH=../deps/lib
 
 make
-cp ../tools/0 .
 cp ../tools/p2p.cfg .
 cp ../lua/json.lua .
 cp ../lua/md5.lua .

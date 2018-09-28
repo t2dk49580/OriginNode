@@ -221,6 +221,7 @@ void onnObject::initKey(){
         onnSetting->setValue("prikey",Encrypt(GETSHA256(curAppkey.c_str()),onnArgument.value("-i").toLatin1()));
         onnSetting->setValue("pubkey",computePubkey(onnArgument.value("-i").toLatin1()));
         cout << GETADDR(computePubkey(onnArgument.value("-i").toLatin1())).data() << endl;
+        onnSetting->sync();
         exit(1);
     }
 }
