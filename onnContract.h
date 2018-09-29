@@ -16,6 +16,8 @@ signals:
 public slots:
     void onStart();
     void onTimeout();
+
+    void onChangeTimer(QByteArray,QByteArray);
 };
 
 #endif // ONNCONTRACT_H

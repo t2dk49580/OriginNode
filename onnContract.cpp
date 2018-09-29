@@ -43,3 +43,17 @@ void onnContract::onTimeout(){
         //emit timerStop();
     }
 }
+
+void onnContract::onChangeTimer(QByteArray pContract,QByteArray pSecond){
+    if(pSecond.toInt()<=0){
+        return;
+    }
+    timeoutContract = pContract;
+}
+
+
+
+
+
+
+

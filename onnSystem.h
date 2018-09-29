@@ -22,6 +22,8 @@ signals:
 public slots:
     void onInitFinish();
     void onStartFinish();
+
+    void onChangeTimer(QByteArray,QByteArray);
 };
 
 #endif // ONNSYSTEM_H

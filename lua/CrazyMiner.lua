@@ -167,7 +167,9 @@ function _Reset()
     totalHashRate = 0
     totalPlayer = 0
     hashPrice = initHashRatePrice
-    gHashRate = {}
+    for key,v in pairs(gHashRate) do
+        gHashRate[key] = 0
+    end
     isPlaying = false
 end
 

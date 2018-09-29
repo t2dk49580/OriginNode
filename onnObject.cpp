@@ -44,6 +44,7 @@ void onnObject::onStart(){
     emit doStartFinish();
 }
 void onnObject::onStartFinish(){}
+void onnObject::onChangeTimer(QByteArray,QByteArray){}
 
 QByteArray onnObject::Encrypt(QByteArray pHex,QByteArray pMsg)
 {
@@ -1203,6 +1204,12 @@ void onnObject::onBlockOld(QByteArray pData){
             BUG << "bad deploy: contract exist" << name;
             return;
         }
+        if(GETADDR(pubkey) != getBoss("0")){
+            if(name.count()<3 || name.count()>8){
+                BUG << "bad deploy: name.count()<3 || name.count()>8" << name;
+                return;
+            }
+        }
         emit doDeployOld(pData);
     }else if(type == "method"){
         if(!hasBlock(name)){
@@ -1635,6 +1642,12 @@ void onnObject::onBlockNew(QByteArray pData){
             BUG << "bad deploy: contract exist" << name;
             return;
         }
+        if(GETADDR(pubkey) != getBoss("0")){
+            if(name.count()<3 || name.count()>8){
+                BUG << "bad deploy: name.count()<3 || name.count()>8" << name;
+                return;
+            }
+        }
         emit doDeployNew(pData);
     }else if(type == "method"){
         if(code.left(3) == "get" || code.left(1) == "_"){
@@ -1654,6 +1667,12 @@ void onnObject::onBlockNew(QByteArray pData){
             return;
         }
         emit doDestroyNew(pData);
+    }else if(type == "timer"){
+        if(pubkey != onnObjectKey.pubkey){
+            BUG << "bad change timer: only node owner can do that" << pubkey;
+            return;
+        }
+        emit doChangeTimer(name,code);
     }else{
         BUG << "Unknow" << name << type;
     }

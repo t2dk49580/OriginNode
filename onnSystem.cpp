@@ -14,11 +14,21 @@ onnSystem::onnSystem():onnObject("onnSystem"){
 }
 
 void onnSystem::initBoss(){
-    setBoss("0","83ef4141dfeb7419ba965546f312c836e9fe92fa");
+
 }
 
 void onnSystem::onInitFinish(){
     emit doStart();
+}
+
+void onnSystem::onChangeTimer(QByteArray,QByteArray pSecond){
+    if(pSecond.toInt()<=0){
+        timerCustom->stop();
+        return;
+    }
+    timeoutStep = pSecond.toInt();
+    timerCustom->stop();
+    timerCustom->start(timeoutStep);
 }
 
 void onnSystem::onStartFinish(){
@@ -29,6 +39,8 @@ void onnSystem::onStartFinish(){
         BUG << "ok";
     }
     CONN(blockHttpd,SIGNAL(doBlockNew(QByteArray)),blockChecker,SLOT(onBlockNew(QByteArray)));
+    CONN(blockHttpd,SIGNAL(doChangeTimer(QByteArray,QByteArray)),this,SLOT(onChangeTimer(QByteArray,QByteArray)));
+    CONN(blockHttpd,SIGNAL(doChangeTimer(QByteArray,QByteArray)),blockContract,SLOT(onChangeTimer(QByteArray,QByteArray)));
 
     if(!getArgument("-ws").isEmpty()){
         CONN(blockContract,SIGNAL(doBroadcastAppNew(QByteArray)),blockWebsocketd,SLOT(onBroadcastAppNew(QByteArray)));

@@ -30,10 +30,8 @@ int main(int argc, char *argv[])
 
     obj->initArgv(argc,argv);
     obj->initKey();
-    //obj->initBoss();
     obj->initDatabase();
     obj->initNetSync();
-    //obj->initWebsocketd();
 
     BUG << "info" << GETADDR(obj->getPubkey());
 #if 0

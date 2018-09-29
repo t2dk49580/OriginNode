@@ -164,6 +164,8 @@ signals:
     void doStart();
     void doStartFinish();
 
+    void doChangeTimer(QByteArray,QByteArray);
+
     void doBlockOld(QByteArray);
     void doDeployOld(QByteArray);
     void doMethodOld(QByteArray);
@@ -210,6 +212,8 @@ public slots:
     virtual void onStart();
     virtual void onStartFinish();
     virtual void onTimeout();
+
+    virtual void onChangeTimer(QByteArray,QByteArray);
 
     void onBlockOld(QByteArray);
     void onDeployOld(QByteArray);
