@@ -9,11 +9,11 @@ echo "QMAKE=$QMAKE"
 
 cd deps
 mkdir lib
-cd handy-master
-./build_config
-make
-cp libhandy.a ../lib
-cd ..
+#cd handy-master
+#./build_config
+#make
+#cp libhandy.a ../lib
+#cd ..
 
 cd leveldb-1.20
 make

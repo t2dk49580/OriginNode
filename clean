@@ -1,10 +1,10 @@
 #!/bin/bash
 
 cd deps
-cd handy-master
-make clean
-rm -rf ssl
-cd ..
+#cd handy-master
+#make clean
+#rm -rf ssl
+#cd ..
 
 cd leveldb-1.20
 make clean
