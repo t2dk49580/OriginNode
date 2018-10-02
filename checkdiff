@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DIR1=$1
+DIR2=$2
+
+FILE1=`ls $DIR1`
+
+for A in $FILE1
+do
+	diff $DIR1/$A $DIR2/$A
+done

@@ -1204,7 +1204,7 @@ void onnObject::onBlockOld(QByteArray pData){
             BUG << "bad deploy: contract exist" << name;
             return;
         }
-        if(GETADDR(pubkey) != getBoss("0")){
+        if(GETADDR(maker) != getBoss("0") && !getBoss("0").isEmpty()){
             if(name.count()<3 || name.count()>8){
                 BUG << "bad deploy: name.count()<3 || name.count()>8" << name;
                 return;

@@ -18,6 +18,7 @@ public slots:
     void onStart();
 private:
     QStringList mMethod;
+    int port;
 };
 
 #endif // ONNHTTPD_H
