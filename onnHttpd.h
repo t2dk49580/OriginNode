@@ -19,6 +19,7 @@ public slots:
 private:
     QStringList mMethod;
     int port;
+    QTcpServer *mServer;
 };
 
 #endif // ONNHTTPD_H
