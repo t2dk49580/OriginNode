@@ -72,6 +72,7 @@ void onnHttpd::runHttpd(int pPort){
     }
     cout<<"runHttp ok:"<<curPort<<endl;
     httpd.onDefault([&](const handy::HttpConnPtr& con){
+        string v = con.getRequest().version;
         handy::HttpResponse resp;
         QByteArray msg;
         if(con.getRequest().method == "GET"){
@@ -94,7 +95,9 @@ void onnHttpd::runHttpd(int pPort){
             cout << "httpd unknow method" << con.getRequest().method << endl;
         }
         con.sendResponse(resp);
-        con->close();
+        if (v == "HTTP/1.0") {
+            con->close();
+        }
     });
     handy::Signal::signal(SIGINT, [&]{base.exit();});
     base.loop();
