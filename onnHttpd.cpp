@@ -61,7 +61,7 @@ void onnHttpd::runBlockNew(QByteArray pData){
 //}
 
 void onnHttpd::runHttpd(int pPort){
-    int threads = QThread::idealThreadCount()*2;
+    int threads = 1;
     handy::setloglevel("FATAL");
     handy::MultiBase base(threads);
     handy::HttpServer httpd(&base);

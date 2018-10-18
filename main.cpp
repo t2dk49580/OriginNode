@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     if(tcount < 5){
         tcount = 5;
     }
+
     QThreadPool::globalInstance()->setMaxThreadCount(tcount);
     onnSystem *obj = new onnSystem();
 

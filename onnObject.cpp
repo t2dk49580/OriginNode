@@ -579,6 +579,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
         lua_resetGas();
         return false;
     }
+
     lua_settop(luaInterface,0);
 
     int arglen = 0;
@@ -809,6 +810,18 @@ QStringList onnObject::getOnlyWork(QStringList pList){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initNetSync(){
+    QSettings curSet("nettime.ini",QSettings::IniFormat);
+    if(curSet.contains("nettime")){
+        qint64 prvTime = curSet.value("nettime").toLongLong();
+        qint64 curTime = QDateTime::currentSecsSinceEpoch();
+        if(curTime-prvTime<=30 && curTime-prvTime>=0){
+            QThread::sleep(31-(curTime-prvTime));
+        }else if(curTime-prvTime<0){
+            QThread::sleep(31);
+        }
+    }
+    QString curVar = QString::number(QDateTime::currentSecsSinceEpoch());
+    curSet.setValue("nettime",curVar);
     onnSync = new NetSync();
     onnSync->Init(GETADDR(getPubkey()));
 }
