@@ -1381,6 +1381,7 @@ void onnObject::onMethodOld(QByteArray pData){
     QString key = GETADDR(pList.at(1));
     QString result;
     if(!checkBlockIndexAndHash(name,curBlock)){
+        BUG << "checkBlockIndexAndHash fail";
         emit doContractOldFail(name.toLatin1());
         return;
     }
@@ -1396,6 +1397,9 @@ void onnObject::onMethodOld(QByteArray pData){
                 emit doBroadcastAppOld(result.toLatin1());
             }
         }
+    }else{
+        BUG << "_doMethodW fail";
+        emit doContractOldFail(name.toLatin1());
     }
 }
 void onnObject::onPeerOld(QByteArray pData){
