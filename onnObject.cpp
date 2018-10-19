@@ -1364,22 +1364,24 @@ void onnObject::onDeployOld(QByteArray pData){
 }
 void onnObject::onMethodOld(QByteArray pData){
     onnBlock curBlock = createBlock(pData);
+    QList<QByteArray> pList = curBlock.blockData.split('$');
+    QString name = pList.at(2);
     if(flagStart){
         QByteArray curHash = GETSHA256(curBlock.blockData);
         if(getDatabaseBlock(curHash) != "null"){
             BUG << "bad method old: hash data exist" << curHash;
+            emit doContractOldFail(name.toLatin1());
             return;
         }else{
             setDatabaseBlock(curHash,curHash);
         }
     }
-    QList<QByteArray> pList = curBlock.blockData.split('$');
-    QString name = pList.at(2);
     QString code = pList.at(3);
     QString arg = QByteArray::fromHex(pList.at(4));
     QString key = GETADDR(pList.at(1));
     QString result;
     if(!checkBlockIndexAndHash(name,curBlock)){
+        emit doContractOldFail(name.toLatin1());
         return;
     }
     if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
@@ -1611,6 +1613,13 @@ void onnObject::onDestroyOldOK(QByteArray pData){
         return;
     }
     emit doBlockOld(curValue);
+}
+
+void onnObject::onContractOldFail(QByteArray pContract){
+    if(flagStart){
+        return;
+    }
+    doFinishReadable(pContract);
 }
 
 void onnObject::onBlockNew(QByteArray pData){

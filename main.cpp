@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
     CONN(blockContract,SIGNAL(doPeerOldOK(QByteArray)),blockDatabase,SLOT(onPeerOldOK(QByteArray)));
     CONN(blockContract,SIGNAL(doDestroyNewOK(QByteArray)),blockDatabase,SLOT(onDestroyNewOK(QByteArray)));
     CONN(blockContract,SIGNAL(doDestroyOldOK(QByteArray)),blockDatabase,SLOT(onDestroyOldOK(QByteArray)));
+    CONN(blockContract,SIGNAL(doContractOldFail(QByteArray)),blockDatabase,SLOT(onContractOldFail(QByteArray)));
 
     CONN(blockUdpd,SIGNAL(doBlockOld(QByteArray)),blockChecker,SLOT(onBlockOld(QByteArray)));
 

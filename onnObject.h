@@ -175,6 +175,7 @@ signals:
     void doDeployOldOK(QByteArray,QByteArray);
     void doMethodOldOK(QByteArray,QByteArray);
     void doDestroyOldOK(QByteArray);
+    void doContractOldFail(QByteArray);
 
     void doBlockNew(QByteArray);
     void doDeployNew(QByteArray);
@@ -224,6 +225,7 @@ public slots:
     void onDeployOldOK(QByteArray,QByteArray);
     void onMethodOldOK(QByteArray,QByteArray);
     void onDestroyOldOK(QByteArray);
+    void onContractOldFail(QByteArray);
 
     void onBlockNew(QByteArray);
     void onDeployNew(QByteArray);
