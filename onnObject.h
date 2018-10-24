@@ -42,6 +42,8 @@ public:
     static QByteArray getBlock0();
     static void makeBlock0();
 
+    static void initSleep();
+
     static void initKey();
     static QByteArray computePubkey(QByteArray);
     static bool hasAppkey();

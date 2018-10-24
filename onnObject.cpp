@@ -1,33 +1,33 @@
 #include "onnObject.h"
 #include <QMultiMap>
 
-QSettings *onnSetting;
-onnKey onnObjectKey;
-QHash<QString,QString> onnArgument;
-QHash<QByteArray,QByteArray> onnBoss;
-QMultiHash<QByteArray,QByteArray> onnBossforAddress;
-leveldb::DB *onnObjectDB;
-QStringList onnReadableContract;
-QHash<QString,onnBossBlock> *onnBlockChain = new QHash<QString,onnBossBlock>;
-QHash<QString,lua_State *> *onnObjectContract = new QHash<QString,lua_State *>;
-Hub *onnWebsocket;// = new Hub();
-NetSync *onnSync;
-QStringList onnPeerList;
-QStringList onnPeerLose;
-QTimer *onnTimer = new QTimer();
-QList<QByteArray> onnWebsocketAddress;
-QList<QByteArray> onnWebsocketPeers;
-QHash<QString,onnSyncQueue> onnSyncData;
-QHash<QString,onnSyncQueue> onnSyncRequest;
-QHash<QString,onnSyncQueue> onnSyncResponse;
-int onnSyncRequestCount = 0;
-int onnSyncResponseCount = 0;
-QStringList onnClientList;
-QMultiHash<QByteArray,QByteArray> onnChangeBossData;
-QStringList onnBlackList;
-QReadWriteLock onnRWlock;
-QMutex onnLock;
-int onnGas = 0;
+static QSettings *onnSetting;
+static onnKey onnObjectKey;
+static QHash<QString,QString> onnArgument;
+static QHash<QByteArray,QByteArray> onnBoss;
+static QMultiHash<QByteArray,QByteArray> onnBossforAddress;
+static leveldb::DB *onnObjectDB;
+static QStringList onnReadableContract;
+static QHash<QString,onnBossBlock> *onnBlockChain = new QHash<QString,onnBossBlock>;
+static QHash<QString,lua_State *> *onnObjectContract = new QHash<QString,lua_State *>;
+static Hub *onnWebsocket;// = new Hub();
+static NetSync *onnSync;
+static QStringList onnPeerList;
+static QStringList onnPeerLose;
+static QTimer *onnTimer = new QTimer();
+static QList<QByteArray> onnWebsocketAddress;
+static QList<QByteArray> onnWebsocketPeers;
+static QHash<QString,onnSyncQueue> onnSyncData;
+static QHash<QString,onnSyncQueue> onnSyncRequest;
+static QHash<QString,onnSyncQueue> onnSyncResponse;
+static int onnSyncRequestCount = 0;
+static int onnSyncResponseCount = 0;
+static QStringList onnClientList;
+static QMultiHash<QByteArray,QByteArray> onnChangeBossData;
+static QStringList onnBlackList;
+static QReadWriteLock onnRWlock;
+static QMutex onnLock;
+static int onnGas = 0;
 
 onnObject::onnObject(QString pType){
     objType = pType;
@@ -179,6 +179,14 @@ void onnObject::makeBlock0(){
     f1.open(QIODevice::WriteOnly);
     f1.write(toString(curBlock));
     f1.close();
+}
+
+void onnObject::initSleep(){
+    qDebug() << "init ONN blockchain system";
+    for(int i=0;i<45;i++){
+        BUG << 45-i;
+        QThread::sleep(1);
+    }
 }
 
 void onnObject::initKey(){
@@ -810,16 +818,8 @@ QStringList onnObject::getOnlyWork(QStringList pList){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initNetSync(){
+    initSleep();
     QSettings curSet("nettime.ini",QSettings::IniFormat);
-    if(curSet.contains("nettime")){
-        qint64 prvTime = curSet.value("nettime").toLongLong();
-        qint64 curTime = QDateTime::currentSecsSinceEpoch();
-        if(curTime-prvTime<=30 && curTime-prvTime>=0){
-            QThread::sleep(31-(curTime-prvTime));
-        }else if(curTime-prvTime<0){
-            QThread::sleep(31);
-        }
-    }
     QString curVar = QString::number(QDateTime::currentSecsSinceEpoch());
     curSet.setValue("nettime",curVar);
     onnSync = new NetSync();

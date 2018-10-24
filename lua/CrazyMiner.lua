@@ -1,6 +1,7 @@
 json = require 'json'
 
 gUser = nil
+gModify = '20181022 111800'
 
 financer = 'P0'
 banker = 'P1'
@@ -131,6 +132,7 @@ function init()
     _Reset()
     financer = gUser
     banker = gUser
+    return 'ok'
 end
 
 function setFinancer(pUser)
@@ -155,9 +157,9 @@ end
 
 function getBalance(pUser)
     if gBalance[pUser] == nil then
-		return _toJson('balanceOf',0)
+		return 0
 	end
-	return _toJson('balanceOf',gBalance[pUser])
+	return gBalance[pUser]
 end
 
 function _Reset()
@@ -171,6 +173,17 @@ function _Reset()
         gHashRate[key] = 0
     end
     isPlaying = false
+end
+
+function doTimeout()
+    if gUser ~= financer then
+        return 'fail'
+    end
+    if isPlaying ~= true then
+        return 'fail'
+    end
+    _timeout()
+    return 'ok'
 end
 
 function _timeout()
@@ -250,6 +263,7 @@ function BuyHash()
         size = size + 1
     end
     totalPlayer = size
+    return 'ok'
 end
 
 function Recharge(pUser,amount,pHash)

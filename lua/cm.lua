@@ -151,6 +151,10 @@ function _Reset()
     isPlaying = false
 end
 
+function doTimeout()
+    -- body
+end
+
 function _timeout()
     Tick = Tick + 1;
     _tick()

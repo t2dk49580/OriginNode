@@ -4,12 +4,12 @@
 QTimer *timerUdpd  = new QTimer();
 QTimer *timerCustom= new QTimer();
 
-QThread *threadChecker   = new QThread();
-QThread *threadContract  = new QThread();
-QThread *threadDatabase  = new QThread();
-QThread *threadHttpd     = new QThread();
-QThread *threadUdpd      = new QThread();
-QThread *threadWebsocketd= new QThread();
+static QThread *threadChecker   = new QThread();
+static QThread *threadContract  = new QThread();
+static QThread *threadDatabase  = new QThread();
+static QThread *threadHttpd     = new QThread();
+static QThread *threadUdpd      = new QThread();
+static QThread *threadWebsocketd= new QThread();
 
 onnChecker      *blockChecker       = new onnChecker();
 onnContract     *blockContract      = new onnContract();
