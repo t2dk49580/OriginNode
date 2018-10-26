@@ -31,10 +31,36 @@ gDepositeF = {}
 gWithdrawalU = {}
 gWithdrawalF = {}
 
+gWithdrawalMin = 100
+gFee = 10
+
+function setWithdrawalmin(pMin)
+    if gUser ~= banker and gUser ~= financer then
+        return 'fail'
+    end
+    gWithdrawalMin = tonumber(pMin)
+    return 'ok'
+end
+
+function setWithdrawalfee(pFee)
+    if gUser ~= banker and gUser ~= financer then
+        return 'fail'
+    end
+    gFee = tonumber(pFee)
+    return 'ok'
+end
+
+function getMcInfo()
+    local curResult = {}
+    curResult['fee'] = gFee
+    curResult['wmin'] = gWithdrawalMin
+    return json.encode(curResult)
+end
+
 function withDrawal(pEtheraddress,pAmount)
     local curAmount = tonumber(pAmount)
     curAmount = _getFloat(curAmount,6)
-    if curAmount < 0.02 then
+    if curAmount < gWithdrawalMin then
         return 'fail'
     end
     if gBalance[gUser] < curAmount then
@@ -62,16 +88,36 @@ function withDrawal(pEtheraddress,pAmount)
     curData['user'] = gUser
     curData['stat'] = 'unfinish'
     curData['type'] = 'withdrawal'
+    curData['fee']  = gFee
     if gWithdrawalU[gUser] == nil then
         gWithdrawalU[gUser] = {}
     end
     gWithdrawalU[gUser][tostring(gTickID)] = curData
     gTickID = gTickID+1
-    return 'ok'
+    curResult['user'] = gUser
+    curResult['tick'] = gTickID
+    curResult['result'] = true
+    return json.encode(curResult) 
+end
+
+function removedWithdrawal(pUser,pTickid)
+    if gUser ~= banker and gUser ~= financer then
+        return 'fail:only owner can update'
+    end
+    local curTick = tonumber(pTickid)
+    local curData = gWithdrawalU[pUser][pTickid]
+    gFreezen[gUser] = gFreezen[gUser]-curData['amount']
+    gBalance[gUser] = gBalance[gUser]+curData['amount']
+    gWithdrawalU[pUser][pTickid] = nil
+    local curResult = {}
+    curResult['user'] = pUser
+    curResult['tick'] = pTickid
+    curResult['result'] = true
+    return json.encode(curResult) 
 end
 
 function updWithdrawal(pUser,pTickid,pHash)
-    if gUser ~= banker then
+    if gUser ~= banker and gUser ~= financer then
         return 'fail:only owner can update'
     end
     if gWithdrawalU[pUser][pTickid] == nil then
@@ -94,6 +140,7 @@ function updWithdrawal(pUser,pTickid,pHash)
     end
     curData['type'] = 'finish'
     curData['hash'] = pHash
+    curData['realamount'] = curData['amount']-curData['fee']
     gFreezen[gUser] = gFreezen[gUser]-curData['amount']
     gWithdrawalU[pUser][pTickid] = nil
     if gWithdrawalF[pUser] == nil then
@@ -103,11 +150,17 @@ function updWithdrawal(pUser,pTickid,pHash)
     if #gWithdrawalF[pUser] > 10 then
         table.remove( gWithdrawalF[pUser], 1 )
     end
-    return 'ok'
+    gBalance[banker] = gBalance[banker]+curData['fee']
+    local curResult = {}
+    curResult['user'] = pUser
+    curResult['tick'] = pTickid
+    curResult['hash'] = pHash
+    curResult['result'] = true
+    return json.encode(curResult) 
 end
 
 function getWithdrawal()
-    if gUser == banker then
+    if gUser == banker or gUser == financer then
         return json.encode(gWithdrawalU)
     end
     return 'only owner can get this info'
@@ -132,7 +185,11 @@ function init()
     _Reset()
     financer = gUser
     banker = gUser
-    return 'ok'
+    local curResult = {}
+    curResult['user'] = gUser
+    curResult['init'] = true
+    curResult['result'] = true
+    return json.encode(curResult)
 end
 
 function setFinancer(pUser)
@@ -140,7 +197,14 @@ function setFinancer(pUser)
         return 'fail'
     end
     financer = pUser
-    return 'ok'
+    local curResult = {}
+    curResult['financer'] = financer
+    curResult['result'] = true
+    return json.encode(curResult)
+end
+
+function getFinancer()
+    return financer
 end
 
 function _setUser(pUser)
@@ -169,9 +233,7 @@ function _Reset()
     totalHashRate = 0
     totalPlayer = 0
     hashPrice = initHashRatePrice
-    for key,v in pairs(gHashRate) do
-        gHashRate[key] = 0
-    end
+    gHashRate = {}
     isPlaying = false
 end
 
@@ -199,19 +261,21 @@ function _tick()
         MinePool = MinePool - totalHashRate
         local key,v
         for key,v in pairs(gHashRate) do
-            gBalance[key] = gBalance[key] + v*gSpeed
+            gBalance[key] = gBalance[key] + v
         end
     else
+
         local key,v
         for key,v in pairs(gHashRate) do
             MinePool = MinePool - gHashRate[key];
-            gBalance[key] = v + gBalance[key]
+            gBalance[key] = gBalance[key] + v
             if MinePool<=0 then
                 print(gBalance[key],MinePool,gBalance[key] + MinePool)
                 gBalance[key] = gBalance[key] + MinePool 
                 break
             end
         end
+
         gBalance[lastIncoming] = gBalance[lastIncoming] + BonusPool
                 
         local winner = {}
@@ -238,6 +302,11 @@ function _tickTest(cnt)
 end
 
 function BuyHash()
+    if(gBalance[gUser] == nil) then
+        print('no balance addr!')
+        return 'fail'
+    end
+
     if(gBalance[gUser]>hashPrice) then
         if gHashRate[gUser] == nil then
             gHashRate[gUser] = 0
@@ -263,12 +332,11 @@ function BuyHash()
         size = size + 1
     end
     totalPlayer = size
-    return 'ok'
 end
 
 function Recharge(pUser,amount,pHash)
     print(gUser,financer,pUser,amount,pHash)
-    if gUser ~= financer then
+    if gUser ~= financer and gUser ~= banker then
         return 'fail'
     end
     
@@ -317,7 +385,7 @@ end
 
 function getHistory(pUser)
     local result = {}
-    result['user'] = gUser
+    result['user'] = pUser
     if gWithdrawalF[addpUserr] ~= nil then
         result['wfinish'] = gWithdrawalF[pUser]
     end
