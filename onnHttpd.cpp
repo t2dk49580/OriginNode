@@ -61,7 +61,7 @@ void onnHttpd::runBlockNew(QByteArray pData){
 //}
 
 void onnHttpd::runHttpd(int pPort){
-    int threads = 1;
+    int threads = QThread::idealThreadCount()*2+1;
     handy::setloglevel("FATAL");
     handy::MultiBase base(threads);
     handy::HttpServer httpd(&base);
@@ -91,6 +91,7 @@ void onnHttpd::runHttpd(int pPort){
             //emit doBlockNew(msg);
             QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
         }else{
+            con.clearData();
             resp.body = handy::Slice(GETSHA256(msg));
             cout << "httpd unknow method" << con.getRequest().method << endl;
         }

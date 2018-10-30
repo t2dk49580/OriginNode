@@ -9,6 +9,7 @@ bonusRate = 0.3
 hashPriceIncreaceRate = 1
 initHashRatePrice = 1000
 
+gSymbol = 'CM'
 gSpeed = 1
 Round = 1
 Tick = 1
@@ -40,6 +41,24 @@ B1 = 0.25
 B2 = 0.13
 B3 = 0.07
 B4 = 0.04
+
+function _addResult(pUser,pMethod,pResult,pMsg,pAll)
+    local buffer = {}
+    local result = pAll
+    buffer['method'] = pMethod
+    buffer['result'] = pResult
+    buffer['msg']    = pMsg
+    buffer['owner']  = pUser
+    buffer['symbol'] = gSymbol
+    table.insert(result,buffer)
+    return result
+end
+
+function _getResult(pUser,pMethod,pResult,pMsg)
+    local buffer = {}
+    local result = _addResult(pUser,pMethod,pResult,pMsg,buffer)
+    return json.encode(result)
+end
 
 function setWithdrawalmin(pMin)
     if gUser ~= banker and gUser ~= financer then
@@ -101,6 +120,7 @@ function withDrawal(pEtheraddress,pAmount)
     end
     gWithdrawalU[gUser][tostring(gTickID)] = curData
     gTickID = gTickID+1
+    local curResult = {}
     curResult['user'] = gUser
     curResult['tick'] = gTickID
     curResult['result'] = true
@@ -113,14 +133,10 @@ function removedWithdrawal(pUser,pTickid)
     end
     local curTick = tonumber(pTickid)
     local curData = gWithdrawalU[pUser][pTickid]
-    gFreezen[gUser] = gFreezen[gUser]-curData['amount']
-    gBalance[gUser] = gBalance[gUser]+curData['amount']
+    gFreezen[pUser] = gFreezen[pUser]-curData['amount']
+    gBalance[pUser] = gBalance[pUser]+curData['amount']
     gWithdrawalU[pUser][pTickid] = nil
-    local curResult = {}
-    curResult['user'] = pUser
-    curResult['tick'] = pTickid
-    curResult['result'] = true
-    return json.encode(curResult) 
+    return _getResult(gUser,'removedWithdrawal',true,pTickid)
 end
 
 function updWithdrawal(pUser,pTickid,pHash)
@@ -133,12 +149,12 @@ function updWithdrawal(pUser,pTickid,pHash)
     if gWithdrawalU[pUser][pTickid]['type'] == 'finish' then
         return 'fail:'..pUser..'-withdrawal-is finish-'..pTickid
     end
-    local curData = {}
-    curData['id'] = gWithdrawalU[pUser][pTickid]['id']
-    curData['etheraddress'] = gWithdrawalU[pUser][pTickid]['etheraddress']
-    curData['amount'] = gWithdrawalU[pUser][pTickid]['amount']
-    curData['user'] = gWithdrawalU[pUser][pTickid]['user']
-    curData['stat'] = gWithdrawalU[pUser][pTickid]['stat']
+    local curData = _clone(gWithdrawalU[pUser][pTickid])
+    --curData['id'] = gWithdrawalU[pUser][pTickid]['id']
+    --curData['etheraddress'] = gWithdrawalU[pUser][pTickid]['etheraddress']
+    --curData['amount'] = gWithdrawalU[pUser][pTickid]['amount']
+    --curData['user'] = gWithdrawalU[pUser][pTickid]['user']
+    --curData['stat'] = gWithdrawalU[pUser][pTickid]['stat']
     if curData['user'] ~= pUser then
         return 'fail:'..curData['user']..'~='..pUser
     end
@@ -148,7 +164,7 @@ function updWithdrawal(pUser,pTickid,pHash)
     curData['type'] = 'finish'
     curData['hash'] = pHash
     curData['realamount'] = curData['amount']-curData['fee']
-    gFreezen[gUser] = gFreezen[gUser]-curData['amount']
+    gFreezen[pUser] = gFreezen[pUser]-curData['amount']
     gWithdrawalU[pUser][pTickid] = nil
     if gWithdrawalF[pUser] == nil then
         gWithdrawalF[pUser] = {}
@@ -604,4 +620,17 @@ end
 print(getBalance('root'))
 print(getBalance('user0'))
 print(getBalance('user1'))
+
+_setUser('user1')
+print(withDrawal('user1','1000'))
+print(getBalance('user1'))
+_setUser('root')
+print(getWithdrawal())
+print(updWithdrawal('user1','0','0xaaaa'))
+print(getBalance('user1'))
+_setUser('user1')
+print(withDrawal('user1','500'))
+print(getBalance('user1'))
+_setUser('root')
+print(removedWithdrawal('user1','1'))
 print('end')
