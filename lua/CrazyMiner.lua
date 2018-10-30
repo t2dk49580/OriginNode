@@ -1,7 +1,7 @@
 json = require 'json'
 
 gUser = nil
-gModify = '20181022 111800'
+gModify = '20181029 111800'
 
 financer = 'P0'
 banker = 'P1'
@@ -30,9 +30,16 @@ gDepositeU = {}
 gDepositeF = {}
 gWithdrawalU = {}
 gWithdrawalF = {}
+gBuyList = {}
 
 gWithdrawalMin = 100
 gFee = 10
+
+B0 = 0.5
+B1 = 0.25
+B2 = 0.13
+B3 = 0.07
+B4 = 0.04
 
 function setWithdrawalmin(pMin)
     if gUser ~= banker and gUser ~= financer then
@@ -189,6 +196,8 @@ function init()
     curResult['user'] = gUser
     curResult['init'] = true
     curResult['result'] = true
+    gBalance[financer] = 0
+    gBalance[banker] = 0
     return json.encode(curResult)
 end
 
@@ -234,6 +243,7 @@ function _Reset()
     totalPlayer = 0
     hashPrice = initHashRatePrice
     gHashRate = {}
+    gBuyList = {}
     isPlaying = false
 end
 
@@ -253,6 +263,66 @@ function _timeout()
     _tick()
 end
 
+function setB0(pData)
+    if gUser ~= financer then
+        return 'fail'
+    end
+    B0 = tonumber(pData)
+    local curResult = {}
+    curResult['setB0'] = true
+    return json.encode(curResult)
+end
+
+function setB1(pData)
+    if gUser ~= financer then
+        return 'fail'
+    end
+    B1 = tonumber(pData)
+    local curResult = {}
+    curResult['setB1'] = true
+    return json.encode(curResult)
+end
+
+function setB2(pData)
+    if gUser ~= financer then
+        return 'fail'
+    end
+    B2 = tonumber(pData)
+    local curResult = {}
+    curResult['setB2'] = true
+    return json.encode(curResult)
+end
+
+function setB3(pData)
+    if gUser ~= financer then
+        return 'fail'
+    end
+    B3 = tonumber(pData)
+    local curResult = {}
+    curResult['setB3'] = true
+    return json.encode(curResult)
+end
+
+function setB4(pData)
+    if gUser ~= financer then
+        return 'fail'
+    end
+    B4 = tonumber(pData)
+    local curResult = {}
+    curResult['setB4'] = true
+    return json.encode(curResult)
+end
+
+function getB()
+    local curResult = {}
+    curResult['b0'] = B0
+    curResult['b1'] = B1
+    curResult['b2'] = B2
+    curResult['b3'] = B3
+    curResult['b4'] = B4
+    return json.encode(curResult)
+end
+
 function _tick()
     if isPlaying ~= true then
         return 'fail'
@@ -264,7 +334,6 @@ function _tick()
             gBalance[key] = gBalance[key] + v
         end
     else
-
         local key,v
         for key,v in pairs(gHashRate) do
             MinePool = MinePool - gHashRate[key];
@@ -275,9 +344,7 @@ function _tick()
                 break
             end
         end
-
-        gBalance[lastIncoming] = gBalance[lastIncoming] + BonusPool
-                
+       
         local winner = {}
         winner['Round'] = Round
         winner['Addr'] = lastIncoming
@@ -289,10 +356,38 @@ function _tick()
         end
         
         Round = Round + 1
+        local b0 = _getFloat(BonusPool*B0,0)
+        local b1 = _getFloat(BonusPool*B1,0)
+        local b2 = _getFloat(BonusPool*B2,0)
+        local b3 = _getFloat(BonusPool*B3,0)
+        local b4 = _getFloat(BonusPool*B4,0)
+        local b5 = BonusPool-(b0+b1+b2+b3+b4)
+
+        gBalance[lastIncoming] = gBalance[lastIncoming] + b0
+        if #gBuyList >= 2 then
+            gBalance[gBuyList[2]] = gBalance[gBuyList[2]] + b1
+        else
+            gBalance[lastIncoming] = gBalance[lastIncoming] + b1
+        end
+        if #gBuyList >= 3 then
+            gBalance[gBuyList[3]] = gBalance[gBuyList[3]] + b2
+        else
+            gBalance[lastIncoming] = gBalance[lastIncoming] + b2
+        end
+        if #gBuyList >= 4 then
+            gBalance[gBuyList[4]] = gBalance[gBuyList[4]] + b3
+        else
+            gBalance[lastIncoming] = gBalance[lastIncoming] + b3
+        end
+        if #gBuyList >= 5 then
+            gBalance[gBuyList[5]] = gBalance[gBuyList[5]] + b4
+        else
+            gBalance[lastIncoming] = gBalance[lastIncoming] + b4
+        end
+        gBalance[banker] = gBalance[banker] + b5
         _Reset()
     end
 end
-
 
 function _tickTest(cnt)
 	local i
@@ -332,6 +427,11 @@ function BuyHash()
         size = size + 1
     end
     totalPlayer = size
+    table.insert( gBuyList, 1, gUser )
+    if #gBuyList > 5 then
+        table.remove( gBuyList, 6 )
+    end
+    return 'ok'
 end
 
 function Recharge(pUser,amount,pHash)
@@ -488,14 +588,20 @@ function _clone( object )
     return copyObj( object )
 end
 
-function _reset()
-    -- body
-end
-
-local k,v
-aaa = 1
+_setUser('root')
+init()
+print(Recharge('user0','2000'))
+print(Recharge('user1','2000'))
+_setUser('user0')
+print(BuyHash())
+_setUser('user1')
+print(BuyHash())
+_setUser('root')
 local i
 for i=1,5000,1 do
-local _T=_clone(_G)
+    doTimeout()
 end
+print(getBalance('root'))
+print(getBalance('user0'))
+print(getBalance('user1'))
 print('end')

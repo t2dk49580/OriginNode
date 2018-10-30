@@ -1,4 +1,5 @@
 support OS: ubuntu-18.04
 download and install Qt5.11.2 or high
-sudo apt install libssl-dev zlib1g-dev libgoogle-glog-dev libboost-dev 
+sudo apt-get update
+sudo apt install libssl-dev zlib1g-dev libgoogle-glog-dev libboost-dev git gcc g++ make libglib2.0-dev
 ./build "Your qmake PATH"
