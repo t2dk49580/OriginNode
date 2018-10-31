@@ -21,9 +21,9 @@ onnWebsocketd   *blockWebsocketd    = new onnWebsocketd();
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    int tcount = QThread::idealThreadCount()*2+1;
-    if(tcount < 5){
-        tcount = 5;
+    int tcount = QThread::idealThreadCount()+1;
+    if(tcount <= 2){
+        tcount = 3;
     }
 
     QThreadPool::globalInstance()->setMaxThreadCount(tcount);
