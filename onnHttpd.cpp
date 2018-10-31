@@ -93,10 +93,19 @@ void onnHttpd::accept_request(int arg)
     }
     QString curBuf = buf;
     QStringList curList = QString(buf).split("\r\n");
+    if(curList.isEmpty()){
+        close(client);
+        return;
+    }
     QByteArray msg;
     QByteArray result;
     if(curBuf.left(3) == "GET"){
-        msg = curList.last().toLatin1();
+        QStringList curData = curList.first().split(" ");
+        if(curData.count()<2){
+            close(client);
+            return;
+        }
+        msg = curData.at(1).toLatin1();
         result = doHandlerGet(msg);
         if(result.isEmpty()){
             result = "null";

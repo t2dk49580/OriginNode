@@ -15,10 +15,10 @@ make clean
 rm Makefile
 cd ..
 
-#cd openssl11
-#make clean
-#rm Makefile
-#cd ..
+cd openssl11
+make clean
+rm Makefile
+cd ..
 
 cd lib
 rm -rf db
