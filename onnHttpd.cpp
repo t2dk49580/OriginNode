@@ -82,18 +82,26 @@ void onnHttpd::runBlockNew(QByteArray pData){
  * return.  Process the request appropriately.
  * Parameters: the socket connected to the client */
 /**********************************************************************/
+
+void rsp(int fd,QString data){
+    data.push_front("HTTP/1.1 200 OK\r\n\r\n");
+    send(fd,data.toLatin1().data(),data.count(),0);
+}
+
 void onnHttpd::accept_request(int arg)
 {
     int client = arg;
     char buf[1024] = {0};
-    ssize_t numchars = read(client, buf, 1024);
+    ssize_t numchars = recv(client,buf,1024,0);
     if(numchars <= 0){
+        rsp(client,"numchars <= 0");
         close(client);
         return;
     }
     QString curBuf = buf;
     QStringList curList = QString(buf).split("\r\n");
     if(curList.isEmpty()){
+        rsp(client,"curList.isEmpty()");
         close(client);
         return;
     }
@@ -102,6 +110,7 @@ void onnHttpd::accept_request(int arg)
     if(curBuf.left(3) == "GET"){
         QStringList curData = curList.first().split(" ");
         if(curData.count()<2){
+            rsp(client,"curData.count()<2");
             close(client);
             return;
         }
@@ -117,10 +126,10 @@ void onnHttpd::accept_request(int arg)
         QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
     }else{
         msg = buf;
-        result = GETSHA256(msg);;
+        result = GETSHA256(msg);
         BUG << "httpd unknow method" << curList;
     }
-    send(client, result.data(), static_cast<size_t>(result.count()), 0);
+    rsp(client,result);
     close(client);
 }
 
