@@ -1,4 +1,3 @@
-![OriginNode]
 
 #Quick start
   
