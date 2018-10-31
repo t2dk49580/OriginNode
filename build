@@ -9,11 +9,11 @@ echo "QMAKE=$QMAKE"
 
 cd deps
 mkdir lib
-cd handy
-./build_config
-make -j4
-cp libhandy.a ../lib
-cd ..
+#cd handy
+#./build_config
+#make -j4
+#cp libhandy.a ../lib
+#cd ..
 
 cd leveldb-1.20
 make -j4
@@ -27,12 +27,12 @@ cp libssl.a ../lib/libssl10.a
 cp libcrypto.a ../lib/libcrypto10.a
 cd ..
 
-cd openssl11
-./config
-make -j4
-cp libssl.a ../lib/libssl11.a
-cp libcrypto.a ../lib/libcrypto11.a
-cd ..
+#cd openssl11
+#./config
+#make -j4
+#cp libssl.a ../lib/libssl11.a
+#cp libcrypto.a ../lib/libcrypto11.a
+#cd ..
 
 cd ..
 cd output

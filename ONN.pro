@@ -74,14 +74,13 @@ SOURCES += \
     uws/Networking.cpp \
     uws/Node.cpp \
     uws/Socket.cpp \
-    uws/WebSocket.cpp \
-    onnRpcd.cpp
+    uws/WebSocket.cpp
 
 include("./src/Crypto/EmccSDK/nemcc/nemcc.pri")
 include("./NetSync/netsync.pri")
 
 INCLUDEPATH += ./deps/openssl10/include ./deps/include
-LIBS += -lssl10 -lcrypto10 -lz -lhandy -lleveldb -ldl
+LIBS += -lssl10 -lcrypto10 -lz -lleveldb -ldl
 
 HEADERS += \
     onnDefine.h \
@@ -138,5 +137,4 @@ HEADERS += \
     uws/Socket.h \
     uws/uWS.h \
     uws/WebSocket.h \
-    uws/WebSocketProtocol.h \
-    onnRpcd.h
+    uws/WebSocketProtocol.h

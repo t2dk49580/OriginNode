@@ -1,10 +1,10 @@
 #!/bin/bash
 
 cd deps
-cd handy
-make clean
-rm -rf ssl
-cd ..
+#cd handy
+#make clean
+#rm -rf ssl
+#cd ..
 
 cd leveldb-1.20
 make clean
@@ -15,10 +15,10 @@ make clean
 rm Makefile
 cd ..
 
-cd openssl11
-make clean
-rm Makefile
-cd ..
+#cd openssl11
+#make clean
+#rm Makefile
+#cd ..
 
 cd lib
 rm -rf db
