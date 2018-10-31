@@ -91,8 +91,9 @@ void rsp(int fd,QString data){
 void onnHttpd::accept_request(int arg)
 {
     int client = arg;
-    char buf[1024] = {0};
-    ssize_t numchars = recv(client,buf,1024,0);
+    char buf[20000] = {0};
+    QThread::usleep(500);
+    ssize_t numchars = recv(client,buf,20000,0);
     if(numchars <= 0){
         rsp(client,"numchars <= 0");
         close(client);
