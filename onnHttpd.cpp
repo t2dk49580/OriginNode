@@ -100,13 +100,12 @@ void onnHttpd::accept_request(int arg)
     QThread::usleep(500);
     ssize_t numchars = recv(client,buf,20000,0);
     if(numchars <= 0){
-        rsp(client,"numchars <= 0");
-        close(client);
-        return;
+        QThread::usleep(500);
+        recv(client,buf,20000,0);
     }
     QString curBuf = buf;
     QStringList curList = QString(buf).split("\r\n");
-    if(curList.isEmpty()){
+    if(curList.isEmpty() || numchars <= 0){
         rsp(client,"curList.isEmpty()");
         close(client);
         return;
@@ -128,8 +127,8 @@ void onnHttpd::accept_request(int arg)
     }else if(curBuf.left(4) == "POST"){
         msg = curList.last().toLatin1();
         result = GETSHA256(msg);
-        //emit doBlockNew(msg);
-        QtConcurrent::run(this,&onnHttpd::runBlockNew,msg);
+        emit doBlockNew(msg);
+        //QtConcurrent::run(this,&onnHttpd::runBlockNew,msg);
     }else{
         msg = buf;
         result = GETSHA256(msg);
