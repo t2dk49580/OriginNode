@@ -25,6 +25,51 @@ function _setUser(pUser)
     gUser = pUser
 end
 
+function _getIndex(t,v)
+    if t[1] < v then
+        return 1
+    end
+    local left = 1
+    local right = #t
+    local mid = math.ceil((left + right)/2)
+    if t[right] > v then
+        return right+1
+    end
+    while right ~= mid do
+        print(left,right,mid)
+        if t[mid] == v then
+            break;
+        elseif t[mid] > v then
+            left = mid + 1
+        else 
+            right = mid - 1
+        end
+
+        mid = math.ceil((left + right)/2)
+    end
+    print(left,right,mid)
+    return mid,t[mid]
+end
+
+function _clone( object )
+    local lookup_table = {}
+    local function copyObj( object )
+        if type( object ) ~= "table" then
+            return object
+        elseif lookup_table[object] then
+            return lookup_table[object]
+        end
+        
+        local new_table = {}
+        lookup_table[object] = new_table
+        for key, value in pairs( object ) do
+            new_table[copyObj( key )] = copyObj( value )
+        end
+        return setmetatable( new_table, getmetatable( object ) )
+    end
+    return copyObj( object )
+end
+
 function _init()
     gInfo['ct']       = {}
     gInfo['name']     = 'origin node network'
@@ -39,6 +84,7 @@ function _init()
     gInfo['balance']  = {}
     gInfo['balance'][gUser] = 1000000000
     gInfo['peers']          = {}
+    gInfo['miss']           = {}
     gInfo[gUser]            = {}
     gInfo[gUser][gInfo['symbol']]            = true
     gInfo['ct'][gInfo['symbol']]             = {}
@@ -95,6 +141,7 @@ function setMaker(pContract,pUser)
     if gInfo[pUser] == nil then
         gInfo[pUser] = {}
     end
+    gInfo['miss'][pContract] = nil
     gInfo[pUser][pContract] = true
     gInfo['ct'][pContract]['maker'] = pUser
     _addBlockTop()
@@ -118,6 +165,7 @@ function _removeMaker(pContract)
     if gInfo['ct'][pContract] == nil then
         return 'fail'
     end
+    gInfo['miss'][pContract] = true
     local curMaker = gInfo['ct'][pContract]['maker']
     gInfo['ct'][pContract]['maker'] = nil
     if gInfo[curMaker] == nil then
@@ -141,6 +189,10 @@ function _deploy(pContract,pName,pMaker,pSize)
     if curResult == 'fail' then
         return 'fail'
     end
+    if gInfo[pMaker] == nil then
+        gInfo[pMaker] = {}
+    end
+    gInfo[pMaker][pContract] = true
     gInfo['ct'][pContract] = {}
     gInfo['ct'][pContract]['name']   = pName
     gInfo['ct'][pContract]['symbol'] = pContract
@@ -166,11 +218,12 @@ function _delPeer(pUser)
     gInfo['peers'][pUser] = nil
     if gInfo[pUser] == nil then
         _addBlockTop()
-        return 'ok'
+        return '[]'
     end
     local k,v
     local curList = {}
     for k,v in pairs(gInfo[pUser]) do
+        print(k,v)
         table.insert( curList, k )
     end
     local curIndex = 1
@@ -179,7 +232,7 @@ function _delPeer(pUser)
     end
     gInfo[pUser] = nil
     _addBlockTop()
-    return 'ok'
+    return json.encode(curList)
 end
 
 --原生产者离线，全网发起选举后产生一个新生产者
@@ -191,25 +244,6 @@ function _changeMaker(pContract,pMaker)
     gInfo[pMaker][pContract] = true
     _addBlockTop()
     return 'ok'
-end
-
-function _clone( object )
-    local lookup_table = {}
-    local function copyObj( object )
-        if type( object ) ~= "table" then
-            return object
-        elseif lookup_table[object] then
-            return lookup_table[object]
-        end
-        
-        local new_table = {}
-        lookup_table[object] = new_table
-        for key, value in pairs( object ) do
-            new_table[copyObj( key )] = copyObj( value )
-        end
-        return setmetatable( new_table, getmetatable( object ) )
-    end
-    return copyObj( object )
 end
 
 function addDumper(pUser)
@@ -252,9 +286,19 @@ print(_init())
 print(_addPeer('0xabcd','20181028'))
 print(_deploy('hash','kv contract','0xabcd','999'))
 print(getDump())
+print(_addPeer('user0','20181029'))
 print(transfer('0x1111','100'))
 _setUser('0x1111')
 print(transfer('0x2222','10'))
 _setUser('0xabcd')
+print(_delPeer('0xabcd'))
+print(getDump())
+print(setMaker('0','user0'))
+print(getDump())
 print(destroy('hash'))
 print(getDump())
+--local array = {45,40,35,19,13,9,5,2}
+--local curIndex = getIndex(array,2)
+--print(curIndex)
+--table.insert( array, curIndex, 2 )
+--print(json.encode(array))

@@ -93,7 +93,7 @@ void onnHttpd::accept_request(int arg)
     int client = arg;
     char buf[20000] = {0};
     QThread::usleep(500);
-    ssize_t numchars = recv(client,buf,20000,0);
+    ssize_t numchars = recv(client,buf,20000,MSG_DONTWAIT);
     if(numchars <= 0){
         rsp(client,"numchars <= 0");
         close(client);

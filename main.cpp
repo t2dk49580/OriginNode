@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     int tcount = QThread::idealThreadCount()+1;
-    if(tcount <= 2){
-        tcount = 3;
+    if(tcount <= 3){
+        tcount = 4;
     }
 
     QThreadPool::globalInstance()->setMaxThreadCount(tcount);
