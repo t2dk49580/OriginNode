@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <evpp/http/http_server.h>
+
 #define ISspace(x) isspace((int)(x))
 
 #define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
@@ -491,7 +493,7 @@ void onnHttpd::unimplemented(int client)
 
 /**********************************************************************/
 
-void onnHttpd::runHttpd(int pPort)
+void onnHttpd::runHttpdold(int pPort)
 {
     int server_sock = -1;
     u_short port = pPort;
@@ -517,6 +519,42 @@ void onnHttpd::runHttpd(int pPort)
         accept_request(client_sock);
     }
     close(server_sock);
+}
+
+void onnHttpd::runHttpd(int pPort) {
+    std::vector<int> ports = { 9009, 23456, 23457 };
+    int port = pPort;
+    int thread_num = 2;
+
+    ports.push_back(port);
+
+    evpp::http::Server server(thread_num);
+    server.SetThreadDispatchPolicy(evpp::ThreadDispatchPolicy::kIPAddressHashing);
+    server.RegisterDefaultHandler([&](evpp::EventLoop* loop,const evpp::http::ContextPtr& ctx,const evpp::http::HTTPSendResponseCallback& cb) {
+        std::stringstream oss;
+        QByteArray msg = ctx->uri().c_str();
+        QByteArray result;
+        if(ctx->body().ToString().size()>0){//POST
+            result = GETSHA256(msg);
+            //emit doBlockNew(msg);
+            QtConcurrent::run(this,&onnHttpd::runBlockNew,msg);
+        }else{//GET
+            result = doHandlerGet(msg);
+            if(result.isEmpty()){
+                result = "null";
+            }
+        }
+        oss << result.toStdString();
+        cb(oss.str());
+    });
+//    server.RegisterHandler("/echo",[&](evpp::EventLoop* loop,const evpp::http::ContextPtr& ctx,const evpp::http::HTTPSendResponseCallback& cb) {
+//        cb(ctx->body().ToString());
+//    });
+    server.Init(ports);
+    server.Start();
+    while (!server.IsStopped()) {
+        usleep(1);
+    }
 }
 
 void onnHttpd::onStart(){

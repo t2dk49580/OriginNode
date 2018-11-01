@@ -15,6 +15,14 @@ mkdir lib
 #cp libhandy.a ../lib
 #cd ..
 
+cd evpp
+mkdir build
+cd build
+cmake ..
+make -j4
+cp -arv lib/* ../../../output
+cd ../..
+
 cd leveldb-1.20
 make -j4
 cp -arv out-static/* ../lib

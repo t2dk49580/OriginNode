@@ -12,6 +12,7 @@ public:
     void runBlockNew(QByteArray);
     void runHttpd(int);
 
+    void runHttpdold(int);
     void accept_request(int);
     void bad_request(int);
     void cat(int, FILE *);

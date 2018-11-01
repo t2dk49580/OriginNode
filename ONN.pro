@@ -79,8 +79,8 @@ SOURCES += \
 include("./src/Crypto/EmccSDK/nemcc/nemcc.pri")
 include("./NetSync/netsync.pri")
 
-INCLUDEPATH += ./deps/openssl10/include ./deps/include
-LIBS += -lssl10 -lcrypto10 -lz -lleveldb -ldl
+INCLUDEPATH += ./deps/openssl10/include ./deps/include ./deps/evpp
+LIBS += -L. -levpp -lssl10 -lcrypto10 -lz -lleveldb -ldl
 
 HEADERS += \
     onnDefine.h \

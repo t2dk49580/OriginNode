@@ -6,6 +6,10 @@ cd deps
 #rm -rf ssl
 #cd ..
 
+cd evpp
+rm -rf build
+cd ..
+
 cd leveldb-1.20
 make clean
 cd ..
@@ -33,5 +37,5 @@ cd ..
 cd output
 
 make clean
-rm -rf opensslbuild
+rm -rf opensslbuild db
 rm *

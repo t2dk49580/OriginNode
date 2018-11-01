@@ -393,7 +393,7 @@ QByteArray onnObject::doHandlerGet(QByteArray pData){
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::initArgv(int argc, char *argv[]){
-    QString onnVersion = "0.9.1.4";
+    QString onnVersion = "0.9.2.0";
     if(argc>1){
         for(int i=1;i<argc;i=i+2){
             if(i+1>argc)
