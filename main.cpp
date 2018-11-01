@@ -21,12 +21,12 @@ onnWebsocketd   *blockWebsocketd    = new onnWebsocketd();
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    int tcount = QThread::idealThreadCount()+1;
-    if(tcount <= 3){
-        tcount = 4;
-    }
+//    int tcount = QThread::idealThreadCount()+1;
+//    if(tcount <= 3){
+//        tcount = 4;
+//    }
 
-    QThreadPool::globalInstance()->setMaxThreadCount(tcount);
+//    QThreadPool::globalInstance()->setMaxThreadCount(tcount);
     onnSystem *obj = new onnSystem();
 
     obj->initArgv(argc,argv);

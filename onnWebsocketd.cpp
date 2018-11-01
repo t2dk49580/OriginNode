@@ -22,7 +22,7 @@ void onnWebsocketd::onStart(){
     }
     if(!getArgument("-ws").isEmpty()){
         std::cout << "websocketd start" << std::endl;
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnWebsocketd::runWebsocketd,getArgument("-ws").toInt());
+        QtConcurrent::run(this,&onnWebsocketd::runWebsocketd,getArgument("-ws").toInt());
         //runWebsocketd(getArgument("-ws").toInt());
     }else{
         std::cout << "websocketd stop" << std::endl;

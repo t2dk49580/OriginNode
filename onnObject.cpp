@@ -1974,7 +1974,7 @@ void onnObject::onUdpdPeer(QStringList pList, QStringList pLose, QStringList pNe
             else
                 curData = doCustomSet("peer","0","peer",(pList.join(",")+"?"+pLose.join(",")).toLatin1().toHex());
             //emit doBlockNew(curData);
-            QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,curData);
+            QtConcurrent::run(this,&onnObject::onBlockNew,curData);
         }
     }
 }
@@ -2093,7 +2093,7 @@ void onnObject::onCustomRequire(QString contractID, QString addr, QString cmd, Q
     //BUG << cmd;
     if(cmd=="newblock"){
         //emit doBlockNew(data.toLatin1());
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnObject::onBlockNew,data.toLatin1());
+        QtConcurrent::run(this,&onnObject::onBlockNew,data.toLatin1());
     }else if(cmd=="level"){
         QStringList levelData = data.split(",");
         for(auto curLevel:levelData){

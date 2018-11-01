@@ -90,10 +90,15 @@ void rsp(int fd,QString data){
 
 void onnHttpd::accept_request(int arg)
 {
+    int nNetTimeout=1;//10秒，
+    //设置发送超时
+    setsockopt(arg,SOL_SOCKET,SO_SNDTIMEO,(char *)&nNetTimeout,sizeof(int));
+    //设置接收超时
+    setsockopt(arg,SOL_SOCKET,SO_RCVTIMEO,(char *)&nNetTimeout,sizeof(int));
     int client = arg;
     char buf[20000] = {0};
     QThread::usleep(500);
-    ssize_t numchars = recv(client,buf,20000,MSG_DONTWAIT);
+    ssize_t numchars = recv(client,buf,20000,0);
     if(numchars <= 0){
         rsp(client,"numchars <= 0");
         close(client);
@@ -124,7 +129,7 @@ void onnHttpd::accept_request(int arg)
         msg = curList.last().toLatin1();
         result = GETSHA256(msg);
         //emit doBlockNew(msg);
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
+        QtConcurrent::run(this,&onnHttpd::runBlockNew,msg);
     }else{
         msg = buf;
         result = GETSHA256(msg);
@@ -509,7 +514,7 @@ void onnHttpd::runHttpd(int pPort)
         //if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)(intptr_t)client_sock) != 0)
         //    perror("pthread_create");
         //QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::accept_request,client_sock);
+        QtConcurrent::run(this,&onnHttpd::accept_request,client_sock);
     }
     close(server_sock);
 }
@@ -524,7 +529,7 @@ void onnHttpd::onStart(){
     if(!getArgument("-p").isEmpty()){
         std::cout << "httpd start:" << senderObj->objectName().toStdString() << " " << senderObj->objType.toStdString() <<std::endl;
         //runHttpd(getArgument("-p").toInt());
-        QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runHttpd,getArgument("-p").toInt());
+        QtConcurrent::run(this,&onnHttpd::runHttpd,getArgument("-p").toInt());
     }else{
         std::cout << "httpd stop" << senderObj->objectName().toStdString() << " " << senderObj->objType.toStdString() <<std::endl;
     }
