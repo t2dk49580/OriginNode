@@ -107,7 +107,7 @@ void onnHttpd::accept_request(int arg)
     QStringList curList = QString(buf).split("\r\n");
     if(curList.isEmpty() || numchars <= 0){
         rsp(client,"curList.isEmpty()");
-        close(client);
+        shutdown(client,SHUT_RDWR);
         return;
     }
     QByteArray msg;
@@ -116,7 +116,7 @@ void onnHttpd::accept_request(int arg)
         QStringList curData = curList.first().split(" ");
         if(curData.count()<2){
             rsp(client,"curData.count()<2");
-            close(client);
+            shutdown(client,SHUT_RDWR);
             return;
         }
         msg = curData.at(1).toLatin1();
@@ -135,7 +135,7 @@ void onnHttpd::accept_request(int arg)
         BUG << "httpd unknow method" << curList;
     }
     rsp(client,result);
-    close(client);
+    shutdown(client,SHUT_RDWR);
 }
 
 /**********************************************************************/
@@ -513,7 +513,8 @@ void onnHttpd::runHttpd(int pPort)
         //if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)(intptr_t)client_sock) != 0)
         //    perror("pthread_create");
         //QtConcurrent::run(QThreadPool::globalInstance(),this,&onnHttpd::runBlockNew,msg);
-        QtConcurrent::run(this,&onnHttpd::accept_request,client_sock);
+        //QtConcurrent::run(this,&onnHttpd::accept_request,client_sock);
+        accept_request(client_sock);
     }
     close(server_sock);
 }
