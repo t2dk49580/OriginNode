@@ -1,7 +1,7 @@
 
 # Quick start
   
-    docker pull onnblockchain
+    docker pull onnblockchain/onn
 
 # How to build
   
