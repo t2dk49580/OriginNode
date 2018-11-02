@@ -535,6 +535,7 @@ void onnHttpd::runHttpd(int pPort) {
         QByteArray msg = ctx->uri().c_str();
         QByteArray result;
         if(ctx->body().ToString().size()>0){//POST
+            msg = ctx->body().ToString().c_str();
             result = GETSHA256(msg);
             //emit doBlockNew(msg);
             QtConcurrent::run(this,&onnHttpd::runBlockNew,msg);
