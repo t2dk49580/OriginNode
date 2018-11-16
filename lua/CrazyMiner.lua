@@ -1,7 +1,7 @@
 json = require 'json'
 
 gUser = nil
-gModify = '20181029 111800'
+gModify = '20181116'
 
 financer = 'P0'
 banker = 'P1'
@@ -42,6 +42,35 @@ B2 = 0.13
 B3 = 0.07
 B4 = 0.04
 
+function setRateInit(p0,p1,p2)
+    if gUser ~= banker then
+        return 'fail'
+    end
+    if isPlaying then
+        return 'fail'
+    end
+    bonusRate = tonumber(p0)
+    hashPriceIncreaceRate = tonumber(p1)
+    initHashRatePrice = tonumber(p2)
+    local curResult = {}
+    curResult['bonusRate'] = bonusRate
+    curResult['hashPriceIncreaceRate'] = hashPriceIncreaceRate
+    curResult['initHashRatePrice'] = initHashRatePrice
+    return _getResult(gUser,'setRateInit',true,curResult)
+end
+
+function setB(p0,p1,p2,p3,p4)
+    if gUser ~= banker then
+        return 'fail'
+    end
+    B0 = tonumber(p0)
+    B1 = tonumber(p1)
+    B2 = tonumber(p2)
+    B3 = tonumber(p3)
+    B4 = tonumber(p4)
+    return _getResult(gUser,'setB',true,p0..' '..p1..' '..p2..' '..p3..' '..p4)
+end
+
 function _addResult(pUser,pMethod,pResult,pMsg,pAll)
     local buffer = {}
     local result = pAll
@@ -65,7 +94,7 @@ function setWithdrawalmin(pMin)
         return 'fail'
     end
     gWithdrawalMin = tonumber(pMin)
-    return 'ok'
+    return _getResult(gUser,"setWithdrawalmin",true,pMin)
 end
 
 function setWithdrawalfee(pFee)
@@ -73,14 +102,14 @@ function setWithdrawalfee(pFee)
         return 'fail'
     end
     gFee = tonumber(pFee)
-    return 'ok'
+    return _getResult(gUser,"setWithdrawalfee",true,pFee)
 end
 
 function getMcInfo()
     local curResult = {}
     curResult['fee'] = gFee
     curResult['wmin'] = gWithdrawalMin
-    return json.encode(curResult)
+    return _getResult(gUser,"getMcInfo",true,curResult)
 end
 
 function withDrawal(pEtheraddress,pAmount)
@@ -124,7 +153,7 @@ function withDrawal(pEtheraddress,pAmount)
     curResult['user'] = gUser
     curResult['tick'] = gTickID
     curResult['result'] = true
-    return json.encode(curResult) 
+    return _getResult(gUser,"withDrawal",true,curResult)
 end
 
 function removedWithdrawal(pUser,pTickid)
@@ -179,12 +208,12 @@ function updWithdrawal(pUser,pTickid,pHash)
     curResult['tick'] = pTickid
     curResult['hash'] = pHash
     curResult['result'] = true
-    return json.encode(curResult) 
+    return _getResult(gUser,"updWithdrawal",true,curResult)
 end
 
 function getWithdrawal()
     if gUser == banker or gUser == financer then
-        return json.encode(gWithdrawalU)
+        return _getResult(gUser,"getWithdrawal",true,gWithdrawalU)
     end
     return 'only owner can get this info'
 end
@@ -214,7 +243,7 @@ function init()
     curResult['result'] = true
     gBalance[financer] = 0
     gBalance[banker] = 0
-    return json.encode(curResult)
+    return _getResult(gUser,"init",true,curResult)
 end
 
 function setFinancer(pUser)
@@ -225,11 +254,14 @@ function setFinancer(pUser)
     local curResult = {}
     curResult['financer'] = financer
     curResult['result'] = true
-    return json.encode(curResult)
+    return _getResult(gUser,"setFinancer",true,curResult)
 end
 
 function getFinancer()
-    return financer
+    local curResult = {}
+    curResult['financer'] = financer
+    curResult['result'] = true
+    return _getResult(gUser,"getFinancer",true,curResult)
 end
 
 function _setUser(pUser)
@@ -241,14 +273,14 @@ function _getTotal()
 end
 
 function _getOwner()
-    return Banker
+    return banker
 end
 
 function getBalance(pUser)
     if gBalance[pUser] == nil then
-		return 0
-	end
-	return gBalance[pUser]
+		return _getResult(gUser,"getBalance",true,0)
+    end
+    return _getResult(gUser,"getBalance",true,gBalance[pUser])
 end
 
 function _Reset()
@@ -447,7 +479,7 @@ function BuyHash()
     if #gBuyList > 5 then
         table.remove( gBuyList, 6 )
     end
-    return 'ok'
+    return _getResult(gUser,"BuyHash",true,1)
 end
 
 function Recharge(pUser,amount,pHash)
@@ -478,7 +510,7 @@ function Recharge(pUser,amount,pHash)
     if #gDepositeF[pUser] > 10 then
         table.remove( gDepositeF[pUser], 1 )
     end
-    return 'ok'
+    return _getResult(gUser,'Recharge',true,pUser..' '..amount..' '..pHash)
 end
 
 function getInfo(addr) 
@@ -534,6 +566,25 @@ function _Print()
     print(getLadderInfo())
 end
 
+function _clone( object )
+    local lookup_table = {}
+    local function copyObj( object )
+        if type( object ) ~= "table" then
+            return object
+        elseif lookup_table[object] then
+            return lookup_table[object]
+        end
+        
+        local new_table = {}
+        lookup_table[object] = new_table
+        for key, value in pairs( object ) do
+            new_table[copyObj( key )] = copyObj( value )
+        end
+        return setmetatable( new_table, getmetatable( object ) )
+    end
+    return copyObj( object )
+end
+
 function test()
     _setUser('P1')
     init()
@@ -585,29 +636,10 @@ function test()
     _Print()
 end
 
-function _clone( object )
-    local lookup_table = {}
-    local function copyObj( object )
-        if type( object ) ~= "table" then
-            return object
-        elseif lookup_table[object] then
-            return lookup_table[object]
-        end
-        
-        local new_table = {}
-        lookup_table[object] = new_table
-        for key, value in pairs( object ) do
-            new_table[copyObj( key )] = copyObj( value )
-        end
-        return setmetatable( new_table, getmetatable( object ) )
-    end
-    return copyObj( object )
-end
-
 _setUser('root')
 init()
-print(Recharge('user0','2000'))
-print(Recharge('user1','2000'))
+print(Recharge('user0','2000','0x1'))
+print(Recharge('user1','2000','0x2'))
 _setUser('user0')
 print(BuyHash())
 _setUser('user1')
@@ -634,3 +666,6 @@ print(getBalance('user1'))
 _setUser('root')
 print(removedWithdrawal('user1','1'))
 print('end')
+print(setB('0.55','0.2','0.12','0.08','0.05'))
+print(setRateInit('0.5','1','1000'))
+print(getB())

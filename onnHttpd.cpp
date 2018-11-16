@@ -522,7 +522,8 @@ void onnHttpd::runHttpdold(int pPort)
 }
 
 void onnHttpd::runHttpd(int pPort) {
-    std::vector<int> ports = { 9009, 23456, 23457 };
+    //std::vector<int> ports = { 9009, 23456, 23457 };
+    std::vector<int> ports;
     int port = pPort;
     int thread_num = 2;
 
