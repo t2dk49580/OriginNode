@@ -627,6 +627,13 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     //BUG << pFunction << onnGas;
     if(ret.left(4) == "fail")
         return false;
+    QJsonDocument curDoc = QJsonDocument::fromJson(ret.toLatin1());
+    if(curDoc.isEmpty()){
+        return true;
+    }
+    if(curDoc.object()["result"] == false){
+        return false;
+    }
     return true;
 }
 bool onnObject::_doMethodW(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
@@ -1388,15 +1395,34 @@ void onnObject::onMethodOld(QByteArray pData){
     if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
         insertBlock(name.toLatin1(),curBlock);
         emit doMethodOldOK(name.toLatin1(),pData);
-//        if(flagStart){
-//            if(!result.isEmpty() && result != "null"){
-//                emit doBroadcastAppNew(result.toLatin1());
-//            }
-//        }else{
-//            if(!result.isEmpty() && result != "null"){
-//                emit doBroadcastAppOld(result.toLatin1());
-//            }
-//        }
+        if(flagStart){
+            if(!result.isEmpty() && result != "null"){
+                //BUG << "doBroadcastAppNew" << result;
+                //emit doBroadcastAppNew(result.toLatin1());
+                QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+                if(curDoc.isEmpty()){
+                    return;
+                }
+                if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
+                    QByteArray curData = result.toLatin1();
+                    emit doBroadcastAppNew(curData);
+                }
+            }
+        }else{
+            if(!result.isEmpty() && result != "null"){
+                //BUG << "doBroadcastAppNew" << result;
+                //emit doBroadcastAppNew(result.toLatin1());
+                QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+                if(curDoc.isEmpty()){
+                    return;
+                }
+                if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
+                    QByteArray curData = result.toLatin1();
+                    emit doBroadcastAppOld(curData);
+                }
+            }
+        }
+
     }else{
         BUG << "_doMethodW fail";
         emit doContractOldFail(name.toLatin1());
@@ -1859,17 +1885,17 @@ void onnObject::onMethodNew(QByteArray pData){
         insertBlock(name.toLatin1(),curBlock);
         emit doMethodNewOK(name.toLatin1(),toString(curBlock));
         setDatabaseBlock(curHash,curHash);
-        if(!result.isEmpty() && result != "null"){
-            //BUG << "doBroadcastAppNew" << result;
-            //emit doBroadcastAppNew(result.toLatin1());
-            QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
-            if(curDoc.isEmpty()){
-                return;
-            }
-            if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
-                QByteArray curData = result.toLatin1();
-                emit doBroadcastAppNew(curData);
-            }
+    }
+    if(!result.isEmpty() && result != "null"){
+        //BUG << "doBroadcastAppNew" << result;
+        //emit doBroadcastAppNew(result.toLatin1());
+        QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+        if(curDoc.isEmpty()){
+            return;
+        }
+        if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
+            QByteArray curData = result.toLatin1();
+            emit doBroadcastAppNew(curData);
         }
     }
 }

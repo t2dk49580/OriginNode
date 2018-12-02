@@ -4,11 +4,10 @@ gUser = nil
 gModify = '20181201'
 gData = {}
 
-function _addResult(pUser,pMethod,pResult,pMsg,pAll)
+function _addResult(pUser,pMethod,pMsg,pAll)
     local buffer = {}
     local result = pAll
     buffer['method'] = pMethod
-    buffer['result'] = pResult
     buffer['msg']    = pMsg
     buffer['owner']  = pUser
     buffer['symbol'] = gSymbol
@@ -18,18 +17,20 @@ end
 
 function _getResult(pUser,pMethod,pResult,pMsg)
     local buffer = {}
-    local result = _addResult(pUser,pMethod,pResult,pMsg,buffer)
+    local result = _addResult(pUser,pMethod,pMsg,buffer)
     local final = {}
     final['broad'] = 'N'
+    final['result'] = pResult
     final['data'] = result
     return json.encode(final)
 end
 
 function _getBroadResult(pUser,pMethod,pResult,pMsg)
     local buffer = {}
-    local result = _addResult(pUser,pMethod,pResult,pMsg,buffer)
+    local result = _addResult(pUser,pMethod,pMsg,buffer)
     local final = {}
     final['broad'] = 'Y'
+    final['result'] = pResult
     final['data'] = result
     return json.encode(final)
 end
@@ -130,7 +131,7 @@ function doTimeout()
     for r in pairs(curResult) do
         gData['map']['china']['moving'][r] = nil
     end
-    return _getBroadResult(gUser,"doTimeout",true,gData['map']['china'])
+    return _getBroadResult(gUser,"doTimeout",false,gData['map']['china'])
 end
 
 function addRole(pName,pData)
