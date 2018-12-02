@@ -396,7 +396,7 @@ function _tick()
         local winner = {}
         winner['Round'] = Round
         winner['Addr'] = lastIncoming
-        winner['Bonus'] = BonusPool
+        winner['Bonus'] = _getFloat(BonusPool*B0,0)
         table.insert( ladder, winner)
 
         if #ladder > 10 then

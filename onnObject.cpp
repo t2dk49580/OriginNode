@@ -1388,15 +1388,15 @@ void onnObject::onMethodOld(QByteArray pData){
     if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
         insertBlock(name.toLatin1(),curBlock);
         emit doMethodOldOK(name.toLatin1(),pData);
-        if(flagStart){
-            if(!result.isEmpty() && result != "null"){
-                emit doBroadcastAppNew(result.toLatin1());
-            }
-        }else{
-            if(!result.isEmpty() && result != "null"){
-                emit doBroadcastAppOld(result.toLatin1());
-            }
-        }
+//        if(flagStart){
+//            if(!result.isEmpty() && result != "null"){
+//                emit doBroadcastAppNew(result.toLatin1());
+//            }
+//        }else{
+//            if(!result.isEmpty() && result != "null"){
+//                emit doBroadcastAppOld(result.toLatin1());
+//            }
+//        }
     }else{
         BUG << "_doMethodW fail";
         emit doContractOldFail(name.toLatin1());
@@ -1858,11 +1858,19 @@ void onnObject::onMethodNew(QByteArray pData){
                                         pData);
         insertBlock(name.toLatin1(),curBlock);
         emit doMethodNewOK(name.toLatin1(),toString(curBlock));
-        if(!result.isEmpty() && result != "null"){
-            BUG << "doBroadcastAppNew" << result;
-            emit doBroadcastAppNew(result.toLatin1());
-        }
         setDatabaseBlock(curHash,curHash);
+        if(!result.isEmpty() && result != "null"){
+            //BUG << "doBroadcastAppNew" << result;
+            //emit doBroadcastAppNew(result.toLatin1());
+            QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+            if(curDoc.isEmpty()){
+                return;
+            }
+            if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
+                QByteArray curData = result.toLatin1();
+                emit doBroadcastAppNew(curData);
+            }
+        }
     }
 }
 void onnObject::onPeerNew(QByteArray pData){
