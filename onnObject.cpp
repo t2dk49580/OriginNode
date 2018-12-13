@@ -840,15 +840,19 @@ void onnObject::initWebsocketd(){
     onnWebsocket = new Hub();
     onnWebsocket->onConnection([&](uWS::WebSocket<uWS::SERVER> *ws, HttpRequest) {
         cout << ws->getAddress().address << endl;
-        if(onnWebsocketAddress.contains(ws->getAddress().address)){
+        QByteArray curAddress = ws->getAddress().address;
+        curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
+        if(onnWebsocketAddress.contains(curAddress)){
             ws->close();
         }else{
-            onnWebsocketAddress.append(ws->getAddress().address);
+            onnWebsocketAddress.append(curAddress);
             onnWebsocketPeers.append(QByteArray(ws->getAddress().address).remove(0,7)+":"+QByteArray::number(ws->getAddress().port));
         }
     });
     onnWebsocket->onDisconnection([&](uWS::WebSocket<uWS::SERVER> *ws, int, char *, size_t) {
-        onnWebsocketAddress.removeAll(ws->getAddress().address);
+        QByteArray curAddress = ws->getAddress().address;
+        curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
+        onnWebsocketAddress.removeAll(curAddress);
         onnWebsocketPeers.removeAll(QByteArray(ws->getAddress().address)+":"+QByteArray::number(ws->getAddress().port));
     });
 }

@@ -782,7 +782,7 @@ void luaV_finishOp (lua_State *L) {
     Protect(luaV_finishset(L,t,k,v,slot)); }
 
 int globalGas = 0;
-int globalGasMax = 20000;
+int globalGasMax = 1000000;
 
 int lua_getGas(){
     return globalGas;

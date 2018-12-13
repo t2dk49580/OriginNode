@@ -74,6 +74,7 @@ function init()
     gData['owner'] = gUser
     gData['user'] = {}
     gData['version'] = 0.01
+    gData['total'] = 10000*100000000
     gData['map'] = {}
     gData['map']['china'] = {}
     gData['map']['china']['width'] = 800
@@ -170,7 +171,7 @@ function login(pName,pRole)
     gData['user'][gUser]['online'] = 'Y'
     gData['map']['china']['user'][gUser] = gData['user'][gUser]
 
-    return _getBroadResult(gUser,"startPlay",true,gData['user'][gUser])
+    return _getBroadResult(gUser,"login",true,gData['user'][gUser])
 end
 
 function forceLogout(pUser)
@@ -199,12 +200,14 @@ function getMap(pMap)
     return _getResult(gUser,"getMap",true,gData['map'][pMap])
 end
 
-function moveTo(pX,pY)
-    gData['user'][gUser]['xt'] = tonumber(pX)
-    gData['user'][gUser]['yt'] = tonumber(pY)
+function moveTo(pX0,pY0,pX1,pY1)
+    gData['user'][gUser]['x'] = tonumber(pX0)
+    gData['user'][gUser]['y'] = tonumber(pY0)
+    gData['user'][gUser]['xt'] = tonumber(pX1)
+    gData['user'][gUser]['yt'] = tonumber(pY1)
     gData['map']['china']['moving'][gUser] = gData['user'][gUser]
 
-    return _getResult(gUser,"moveTo",true,gData['user'][gUser])
+    return _getBroadResult(gUser,"moveTo",true,gData['user'][gUser])
 end
 
 function run(pX,pY)
@@ -229,7 +232,7 @@ addRole('monster0','hp=100')
 addRole('monster1','hp=100')
 addRole('monster2','hp=100')
 addRole('monster3','hp=100')
-for i=1,100,1 do
+for i=1,1000,1 do
 login('HAHA','monster0')
 getMap('china')
 moveTo('0','0')
