@@ -555,13 +555,13 @@ onnBlock onnObject::createBlock(qint64 pIndex,qint64 pTime,QString pHashPrev,QBy
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 QString onnObject::doGetRandom(){
-    QString result;
-    _doMethodR(getContract("0"),"_doRand",QString::number(getPeerList().count()),getPubkey(),result);
+    QByteArray result;
+    _doMethodR(getContract("0"),"_doRand",QByteArray::number(getPeerList().count()),getPubkey(),result);
     return result;
 }
 QString onnObject::doGetRandom(int pMax){
-    QString result;
-    _doMethodR(getContract("0"),"_doRand",QString::number(pMax),getPubkey(),result);
+    QByteArray result;
+    _doMethodR(getContract("0"),"_doRand",QByteArray::number(pMax),getPubkey(),result);
     return result;
 }
 bool onnObject::_doMethod(QByteArray pContract, QByteArray pFunction, QByteArray pArg, QByteArray pkey, QByteArray &pResult){
@@ -1012,7 +1012,7 @@ double onnObject::getContractBalance(QByteArray pContract,QByteArray pAddress){
     if(!hasContract(pContract)){
         return 0;
     }
-    QString result;
+    QByteArray result;
     if(_doMethodR(getContract(pContract),"_getBalanceOf",pAddress,pAddress,result)){
         if(result=="fail")
             return 0;
@@ -1021,56 +1021,56 @@ double onnObject::getContractBalance(QByteArray pContract,QByteArray pAddress){
     return 0;
 }
 double onnObject::getOnnBalance(QByteArray pAddr){
-    QString result;
+    QByteArray result;
     if(_doMethodR(getContract("0"),"_getBalanceOf",pAddr,pAddr,result)){
         return result.toDouble();
     }
     return 0;
 }
 QByteArray onnObject::getOnnBossOwner(QByteArray pBoss){
-    QString result;
+    QByteArray result;
     if(!hasContract(pBoss)){
         return "";
     }
     if(_doMethodR(getContract(pBoss),"_getOwner","null",onnObjectKey.address,result)){
-        return result.toLatin1();
+        return result;
     }
     return "";
 }
 QByteArray onnObject::getOnnBossTotal(QByteArray pSymbol){
-    QString result;
+    QByteArray result;
     if(!hasContract(pSymbol)){
         return "fail";
     }
     if(_doMethodR(getContract(pSymbol),"_getTotal","null",onnObjectKey.address,result)){
-        return result.toLatin1();
+        return result;
     }
     return "fail";
 }
 QByteArray onnObject::getOnnBossMaker(QByteArray pSymbol){
-    QString result;
+    QByteArray result;
     if(!hasContract(pSymbol)){
         return "fail";
     }
     if(_doMethodR(getContract(pSymbol),"getBossMaker",pSymbol,onnObjectKey.address,result)){
-        return result.toLatin1();
+        return result;
     }
     return "fail";
 }
 QByteArray onnObject::setOnnBossMaker(QByteArray pSymbol, QByteArray pAddress){
-    QString result;
+    QByteArray result;
     if(!hasContract(pSymbol)){
         return "fail";
     }
     if(_doMethodW(getContract(pSymbol),"setBossMaker",pSymbol+"?"+pAddress,onnObjectKey.address,result)){
         setBoss(pSymbol,pAddress);
-        return result.toLatin1();
+        return result;
     }
     return "fail";
 }
 QString onnObject::setNextBoss(QString pArg){
-    QString curResult;
-    _doMethodW(getContract("0"),"_setNextBoss",pArg,onnObjectKey.address,curResult);
+    QByteArray curResult;
+    _doMethodW(getContract("0"),"_setNextBoss",pArg.toLatin1(),onnObjectKey.address,curResult);
     if(curResult.isEmpty() || curResult.left(4) == "fail"){
         BUG << curResult;
         curResult = "fail";
@@ -1078,8 +1078,8 @@ QString onnObject::setNextBoss(QString pArg){
     return curResult;
 }
 QString onnObject::setDeployBoss(QString pArg, QString pKey){
-    QString curResult;
-    if(!_doMethodW(getContract("0"),"_setDeployBoss",pArg,pKey,curResult)){
+    QByteArray curResult;
+    if(!_doMethodW(getContract("0"),"_setDeployBoss",pArg.toLatin1(),pKey.toLatin1(),curResult)){
         BUG << "fail";
         return "fail";
     }
@@ -1090,26 +1090,26 @@ QString onnObject::setDeployBoss(QString pArg, QString pKey){
     return curResult;
 }
 QString onnObject::setPeers(){
-    QString curResult;
-    _doMethodW(getContract("0"),"_setPeers",getPeerList().join(","),onnObjectKey.address,curResult);
+    QByteArray curResult;
+    _doMethodW(getContract("0"),"_setPeers",getPeerList().join(",").toLatin1(),onnObjectKey.address,curResult);
     return curResult;
 }
 QByteArray onnObject::doOnnTransfer(QByteArray pSender,QByteArray pRecver,QByteArray pNumber){
-    QString result;
+    QByteArray result;
     if(!hasContract("0")){
         return "fail";
     }
     if(_doMethodW(getContract("0"),"transfer",pRecver+"?"+pNumber,pSender,result)){
-        return result.toLatin1();
+        return result;
     }
     return "fail";
 }
 bool onnObject::doOnnDestroy(QString pSymbol,QString pKey){
-    QString result;
+    QByteArray result;
     if(!hasContract(pSymbol.toLatin1())){
         return false;
     }
-    return _doMethodW(getContract(pSymbol.toLatin1()),"_destroy",pSymbol,pKey,result);
+    return _doMethodW(getContract(pSymbol.toLatin1()),"_destroy",pSymbol.toLatin1(),pKey.toLatin1(),result);
 }
 QMultiMap<qint64,QString> onnObject::getOnnBalanceUserList(QStringList pList){
     QMultiMap<qint64,QString> result;
@@ -1302,17 +1302,17 @@ void onnObject::onDeployOld(QByteArray pData){
         }
     }
     QList<QByteArray> pList = curBlock.blockData.split('$');
-    QString name = pList.at(2);
-    QString codeHex = pList.at(3);
-    QString arg = QByteArray::fromHex(pList.at(4));
-    QString key = GETADDR(pList.at(1));
+    QByteArray name = pList.at(2);
+    QByteArray codeHex = pList.at(3);
+    QByteArray arg = QByteArray::fromHex(pList.at(4));
+    QByteArray key = GETADDR(pList.at(1));
     if(GETADDR(curBlock.blockMaker) != getBoss("0") && !getBoss("0").isEmpty()){
         if(name.count()<3 || name.count()>8){
             BUG << "bad deploy: name.count()<3 || name.count()>8" << name;
             return;
         }
     }
-    if(hasContract(name.toLatin1())){
+    if(hasContract(name)){
         BUG << "bad deploy: contract exist" << pData;
         return;
     }
@@ -1323,24 +1323,24 @@ void onnObject::onDeployOld(QByteArray pData){
     if(codeHex.contains("i")){
         code = codeHex;
     }else{
-        code = QByteArray::fromHex(codeHex.toLatin1());
+        code = QByteArray::fromHex(codeHex);
     }
     if(code.contains("_G") && name != "0"){
         BUG << "bad deploy: contains _G" << name;
         return;
     }
-    QString codeCost = QString::number(code.count()*2);
+    QByteArray codeCost = QByteArray::number(code.count()*2);
     //code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
     luaL_openlibs1(luaInterface);
     luaL_dostring(luaInterface,code.toLatin1().data());
-    QString result;
-    QString resultInit;
+    QByteArray result;
+    QByteArray resultInit;
     if(!_doMethodW(luaInterface,"init",arg,key,resultInit)){
         lua_close(luaInterface);
         return;
     }
-    QString curTotal;
+    QByteArray curTotal;
     if(_doMethodR(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
@@ -1353,7 +1353,7 @@ void onnObject::onDeployOld(QByteArray pData){
         //result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
         if(_doMethodW(getContract("0"),"_setDeployBoss",name+"?10000?"+curTotal+"?"+codeCost,key,result)){
             BUG << "setDeployBoss ok";
-            setBoss(name.toLatin1(),result.toLatin1());
+            setBoss(name,result);
         }else{
             BUG << "setDeployBoss fail" << result;
             lua_close(luaInterface);
@@ -1362,16 +1362,16 @@ void onnObject::onDeployOld(QByteArray pData){
     }
     if(flagStart && !resultInit.isEmpty() && resultInit != "null"){
         BUG << "doBroadcastAppNew" << resultInit;
-        emit doBroadcastAppNew(resultInit.toLatin1());
+        emit doBroadcastAppNew(resultInit);
     }
     if(getContracts().isEmpty()){
-        setBoss("0",key.toLatin1());
+        setBoss("0",key);
     }
     emit doSetBossList(getBossAddressList());
-    addContract(name.toLatin1(),luaInterface);
+    addContract(name,luaInterface);
     insertBlock("0",curBlock);
-    insertBlock(name.toLatin1(),curBlock);
-    emit doDeployOldOK(name.toLatin1(),pData);
+    insertBlock(name,curBlock);
+    emit doDeployOldOK(name,pData);
 }
 void onnObject::onMethodOld(QByteArray pData){
     onnBlock curBlock = createBlock(pData);
@@ -1387,10 +1387,10 @@ void onnObject::onMethodOld(QByteArray pData){
             setDatabaseBlock(curHash,curHash);
         }
     }
-    QString code = pList.at(3);
-    QString arg = QByteArray::fromHex(pList.at(4));
-    QString key = GETADDR(pList.at(1));
-    QString result;
+    QByteArray code = pList.at(3);
+    QByteArray arg = QByteArray::fromHex(pList.at(4));
+    QByteArray key = GETADDR(pList.at(1));
+    QByteArray result;
     if(!checkBlockIndexAndHash(name,curBlock)){
         BUG << "checkBlockIndexAndHash fail";
         emit doContractOldFail(name.toLatin1());
@@ -1403,12 +1403,12 @@ void onnObject::onMethodOld(QByteArray pData){
             if(!result.isEmpty() && result != "null"){
                 //BUG << "doBroadcastAppNew" << result;
                 //emit doBroadcastAppNew(result.toLatin1());
-                QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+                QJsonDocument curDoc = QJsonDocument::fromJson(result);
                 if(curDoc.isEmpty()){
                     return;
                 }
                 if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
-                    QByteArray curData = result.toLatin1();
+                    QByteArray curData = result;
                     emit doBroadcastAppNew(curData);
                 }
             }
@@ -1416,12 +1416,12 @@ void onnObject::onMethodOld(QByteArray pData){
             if(!result.isEmpty() && result != "null"){
                 //BUG << "doBroadcastAppNew" << result;
                 //emit doBroadcastAppNew(result.toLatin1());
-                QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+                QJsonDocument curDoc = QJsonDocument::fromJson(result);
                 if(curDoc.isEmpty()){
                     return;
                 }
                 if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
-                    QByteArray curData = result.toLatin1();
+                    QByteArray curData = result;
                     emit doBroadcastAppOld(curData);
                 }
             }
@@ -1780,11 +1780,11 @@ void onnObject::onDeployNew(QByteArray pData){
         return;
     }
     QList<QByteArray> pList = pData.split('$');
-    QString name = pList.at(2);
-    QString codeHex = pList.at(3);
-    QString arg = QByteArray::fromHex(pList.at(4));
-    QString key = GETADDR(pList.at(1));
-    if(hasContract(name.toLatin1())){
+    QByteArray name = pList.at(2);
+    QByteArray codeHex = pList.at(3);
+    QByteArray arg = QByteArray::fromHex(pList.at(4));
+    QByteArray key = GETADDR(pList.at(1));
+    if(hasContract(name)){
         BUG << "bad deploy: contract exist" << name;
         return;
     }
@@ -1793,11 +1793,11 @@ void onnObject::onDeployNew(QByteArray pData){
         emit doCustomRequire(name,getBoss("0"),"newblock",pData);
         return;
     }
-    QString code;
+    QByteArray code;
     if(codeHex.contains("i")){
         code = codeHex;
     }else{
-        code = QByteArray::fromHex(codeHex.toLatin1());
+        code = QByteArray::fromHex(codeHex);
     }
     if(code.contains("_G")){
         BUG << "bad deploy: contains _G" << name;
@@ -1813,18 +1813,18 @@ void onnObject::onDeployNew(QByteArray pData){
         BUG << "bad deploy: hasSyncQueueRequest 0";
         return;
     }
-    QString codeCost = QString::number(code.count()*2);
+    QByteArray codeCost = QByteArray::number(code.count()*2);
     //code.push_front(contractHead);
     lua_State *luaInterface = luaL_newstate();
     luaL_openlibs1(luaInterface);
-    luaL_dostring(luaInterface,code.toLatin1().data());
-    QString result;
-    QString resultInit;
+    luaL_dostring(luaInterface,code.data());
+    QByteArray result;
+    QByteArray resultInit;
     if(!_doMethodW(luaInterface,"init",arg,key,resultInit)){
         lua_close(luaInterface);
         return;
     }
-    QString curTotal;
+    QByteArray curTotal;
     if(_doMethodR(luaInterface,"_getTotal","null",onnObjectKey.address,result)){
         curTotal = result;
     }else{
@@ -1834,29 +1834,29 @@ void onnObject::onDeployNew(QByteArray pData){
         lua_close(luaInterface);
         return;
     }
-    result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key);
+    result = setDeployBoss(name+"?10000?"+curTotal+"?"+codeCost,key).toLatin1();
     if(result == "fail"){
         BUG << "setDeployBoss fail";
         lua_close(luaInterface);
         return;
     }else{
         BUG << "setDeployBoss ok";
-        setBoss(name.toLatin1(),result.toLatin1());
+        setBoss(name,result);
     }
     if(!resultInit.isEmpty() && resultInit != "null"){
         BUG << "doBroadcastAppNew" << resultInit;
-        emit doBroadcastAppNew(resultInit.toLatin1());
+        emit doBroadcastAppNew(resultInit);
     }
     emit doSetBossList(getBossAddressList());
-    addContract(name.toLatin1(),luaInterface);
+    addContract(name,luaInterface);
     onnBlock curBlock = createBlock(getBlock("0").blockIndex.toLongLong()+1,\
                                     QDateTime::currentMSecsSinceEpoch(),\
                                     getBlock("0").blockHash,\
                                     pData);
     insertBlock("0",curBlock);
-    insertBlock(name.toLatin1(),curBlock);
+    insertBlock(name,curBlock);
     setDatabaseBlock(curHash,curHash);
-    emit doDeployNewOK(name.toLatin1(),toString(curBlock));
+    emit doDeployNewOK(name,toString(curBlock));
 }
 void onnObject::onMethodNew(QByteArray pData){
     QByteArray curHash = GETSHA256(pData);
@@ -1865,11 +1865,11 @@ void onnObject::onMethodNew(QByteArray pData){
         return;
     }
     QList<QByteArray> pList = pData.split('$');
-    QString name = pList.at(2);
-    QString code = pList.at(3);
-    QString arg = QByteArray::fromHex(pList.at(4));
-    QString key = GETADDR(pList.at(1));
-    QString result;
+    QByteArray name = pList.at(2);
+    QByteArray code = pList.at(3);
+    QByteArray arg = QByteArray::fromHex(pList.at(4));
+    QByteArray key = GETADDR(pList.at(1));
+    QByteArray result;
     if(name == "0" && code == "transfer" && !getBossMissing(getPeerList()).isEmpty()){
         BUG << "bad method: an contract boss is missing" << getBossMissing(getPeerList());
         return;
@@ -1877,28 +1877,28 @@ void onnObject::onMethodNew(QByteArray pData){
     if(!checkBlockNewIdentity(name,pData)){
         return;
     }
-    if(hasSyncQueueRequest(name.toLatin1())){
+    if(hasSyncQueueRequest(name)){
         BUG << "bad method: hasSyncQueueRequest" << name;
         return;
     }
-    if(_doMethodW(getContract(name.toLatin1()),code,arg,key,result)){
-        onnBlock curBlock = createBlock(getBlock(name.toLatin1()).blockIndex.toLongLong()+1,\
+    if(_doMethodW(getContract(name),code,arg,key,result)){
+        onnBlock curBlock = createBlock(getBlock(name).blockIndex.toLongLong()+1,\
                                         QDateTime::currentMSecsSinceEpoch(),\
-                                        getBlock(name.toLatin1()).blockHash,\
+                                        getBlock(name).blockHash,\
                                         pData);
-        insertBlock(name.toLatin1(),curBlock);
-        emit doMethodNewOK(name.toLatin1(),toString(curBlock));
+        insertBlock(name,curBlock);
+        emit doMethodNewOK(name,toString(curBlock));
         setDatabaseBlock(curHash,curHash);
     }
     if(!result.isEmpty() && result != "null"){
         //BUG << "doBroadcastAppNew" << result;
         //emit doBroadcastAppNew(result.toLatin1());
-        QJsonDocument curDoc = QJsonDocument::fromJson(result.toLatin1());
+        QJsonDocument curDoc = QJsonDocument::fromJson(result);
         if(curDoc.isEmpty()){
             return;
         }
         if(curDoc.object()["broad"] == "Y" && code.left(3) != "get"){
-            QByteArray curData = result.toLatin1();
+            QByteArray curData = result;
             emit doBroadcastAppNew(curData);
         }
     }
