@@ -564,9 +564,9 @@ QString onnObject::doGetRandom(int pMax){
     _doMethodR(getContract("0"),"_doRand",QString::number(pMax),getPubkey(),result);
     return result;
 }
-bool onnObject::_doMethod(QString pContract,QString pFunction,QString pArg,QString pkey,QString &pResult){
+bool onnObject::_doMethod(QByteArray pContract, QByteArray pFunction, QByteArray pArg, QByteArray pkey, QByteArray &pResult){
     onnLock.lock();
-    lua_State *luaInterface = getContract(pContract.toLatin1());
+    lua_State *luaInterface = getContract(pContract);
     if(!luaInterface){
         onnLock.unlock();
         pResult = "method fail: contract not exist";
@@ -576,13 +576,13 @@ bool onnObject::_doMethod(QString pContract,QString pFunction,QString pArg,QStri
     onnLock.unlock();
     return curResult;
 }
-bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+bool onnObject::_doMethod(lua_State *luaInterface, QByteArray pFunction, QByteArray pArg, QByteArray pkey, QByteArray &ret){
     QString _setUser = "_setUser\0";
     lua_getglobal(luaInterface, _setUser.toLatin1().data());
-    lua_pushstring(luaInterface, pkey.toLatin1().data());
+    lua_pushstring(luaInterface, pkey.data());
     if(lua_pcall(luaInterface, 1, 1, 0) != 0){
         BUG << "error _setUser" << lua_tostring(luaInterface,-1);
-        ret = QString("error lua_pcall _setUser ")+QString(__LINE__)+","+pFunction+","+pArg+","+pkey;
+        ret = QByteArray("error lua_pcall _setUser ")+QString(__LINE__).toLatin1()+","+pFunction+","+pArg+","+pkey;
         onnGas = lua_getGas();
         lua_resetGas();
         return false;
@@ -591,23 +591,23 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     lua_settop(luaInterface,0);
 
     int arglen = 0;
-    lua_getglobal(luaInterface, pFunction.toLatin1().data());
+    lua_getglobal(luaInterface, pFunction.data());
     if(pArg == "null"){
         arglen = 0;
     }else if(!pArg.contains("?")){
         arglen = 1;
-        lua_pushstring(luaInterface, pArg.toLatin1().data());
+        lua_pushstring(luaInterface, pArg.data());
     }else{
-        auto curArg = pArg.split("?");
+        auto curArg = pArg.split('?');
         arglen = curArg.count();
         for(int i=0;i<arglen;i++){
-            lua_pushstring(luaInterface, curArg.at(i).toLatin1().data());
+            lua_pushstring(luaInterface, curArg.at(i).data());
         }
     }
     //PrintLuaStack(luaInterface);
     if(lua_pcall(luaInterface, arglen, 1, 0) != 0){
         BUG << "error lua_pcall" << pFunction << pArg << lua_tostring(luaInterface,-1);;
-        ret = QString("error lua_pcall _setUser ")+QString(__LINE__)+","+pFunction+","+pArg+","+pkey;
+        ret = QByteArray("error lua_pcall _setUser ")+QString(__LINE__).toLatin1()+","+pFunction+","+pArg+","+pkey;
         onnGas = lua_getGas();
         lua_resetGas();
         return false;
@@ -615,9 +615,9 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     if(lua_isstring(luaInterface, 1)){
         ret = lua_tostring(luaInterface, 1);
     }else if(lua_isinteger(luaInterface, 1) || lua_isnumber(luaInterface, 1)){
-        ret = QString::number(lua_tointeger(luaInterface, 1));
+        ret = QByteArray::number(lua_tointeger(luaInterface, 1));
     }else if(lua_isnumber(luaInterface, 1)){
-        ret = QString::number(lua_tonumber(luaInterface, 1));
+        ret = QByteArray::number(lua_tonumber(luaInterface, 1));
     }else{
         ret = "null";
     }
@@ -627,7 +627,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     //BUG << pFunction << onnGas;
     if(ret.left(4) == "fail")
         return false;
-    QJsonDocument curDoc = QJsonDocument::fromJson(ret.toLatin1());
+    QJsonDocument curDoc = QJsonDocument::fromJson(ret);
     if(curDoc.isEmpty()){
         return true;
     }
@@ -636,7 +636,7 @@ bool onnObject::_doMethod(lua_State *luaInterface,QString pFunction,QString pArg
     }
     return true;
 }
-bool onnObject::_doMethodW(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+bool onnObject::_doMethodW(lua_State *luaInterface, QByteArray pFunction, QByteArray pArg, QByteArray pkey, QByteArray &ret){
     //onnRWlock.lockForWrite();
     onnLock.lock();
     bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
@@ -644,7 +644,7 @@ bool onnObject::_doMethodW(lua_State *luaInterface,QString pFunction,QString pAr
     //onnRWlock.unlock();
     return result;
 }
-bool onnObject::_doMethodR(lua_State *luaInterface,QString pFunction,QString pArg,QString pkey,QString &ret){
+bool onnObject::_doMethodR(lua_State *luaInterface, QByteArray pFunction, QByteArray pArg, QByteArray pkey, QByteArray &ret){
     //onnRWlock.lockForRead();
     onnLock.lock();
     bool result = _doMethod(luaInterface,pFunction,pArg,pkey,ret);
@@ -659,21 +659,21 @@ QByteArray onnObject::doMethodGet(QByteArray pMsg){
         QString lc = "msgList.count()<4";
         return lc.toLatin1();
     }
-    QString contract = msgList.at(0);
-    QString method = msgList.at(1);
-    QString arg = msgList.at(2);
-    QString pkey = msgList.at(3);
-    QString result;
+    QByteArray contract = msgList.at(0);
+    QByteArray method = msgList.at(1);
+    QByteArray arg = msgList.at(2);
+    QByteArray pkey = msgList.at(3);
+    QByteArray result;
     if(method.left(3) != "get"){
-        QString lc = "method fail: only use get method";
-        return lc.toLatin1();
+        QByteArray lc = "method fail: only use get method";
+        return lc;
     }
 //    if(!hasContract(contract.toLatin1())){
 //        QString lc = "method fail: contract not exist";
 //        return lc.toLatin1();
 //    }
-    _doMethod(contract,method,QByteArray::fromHex(arg.toLatin1()),pkey,result);
-    return result.toLatin1();
+    _doMethod(contract,method,QByteArray::fromHex(arg),pkey,result);
+    return result;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 void onnObject::addContract(QByteArray pContract,lua_State *&pInterface){
@@ -841,7 +841,7 @@ void onnObject::initWebsocketd(){
     onnWebsocket->onConnection([&](uWS::WebSocket<uWS::SERVER> *ws, HttpRequest) {
         cout << ws->getAddress().address << endl;
         QByteArray curAddress = ws->getAddress().address;
-        curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
+        //curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
         if(onnWebsocketAddress.contains(curAddress)){
             ws->close();
         }else{
@@ -851,7 +851,7 @@ void onnObject::initWebsocketd(){
     });
     onnWebsocket->onDisconnection([&](uWS::WebSocket<uWS::SERVER> *ws, int, char *, size_t) {
         QByteArray curAddress = ws->getAddress().address;
-        curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
+        //curAddress = curAddress+":"+QByteArray::number(ws->getAddress().port);
         onnWebsocketAddress.removeAll(curAddress);
         onnWebsocketPeers.removeAll(QByteArray(ws->getAddress().address)+":"+QByteArray::number(ws->getAddress().port));
     });

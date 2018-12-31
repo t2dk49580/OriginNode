@@ -93,10 +93,10 @@ public:
 
     static QString doGetRandom();
     static QString doGetRandom(int);
-    static bool _doMethod (QString,QString,QString,QString,QString &);
-    static bool _doMethod (lua_State *,QString,QString,QString,QString &);
-    static bool _doMethodW(lua_State *,QString,QString,QString,QString &);
-    static bool _doMethodR(lua_State *,QString,QString,QString,QString &);
+    static bool _doMethod (QByteArray,QByteArray,QByteArray,QByteArray,QByteArray &);
+    static bool _doMethod (lua_State *,QByteArray,QByteArray,QByteArray,QByteArray &);
+    static bool _doMethodW(lua_State *,QByteArray,QByteArray,QByteArray,QByteArray &);
+    static bool _doMethodR(lua_State *,QByteArray,QByteArray,QByteArray,QByteArray &);
     static QByteArray doMethodGet(QByteArray pMsg);
 
     static void addContract(QByteArray,lua_State *&);

@@ -131,6 +131,19 @@ function init()
     return _getBroadResult(gUser,'init',true,'ok')
 end
 
+function setFinance(pData)
+    if gUser ~= gData['owner'] then
+        return 'fail 1'
+    end
+    local check = {'id','vol'}
+    local curJson = json.decode(pData)
+    if _check(check,curJson) == false then
+        return 'fail 2'
+    end
+    gData[curJson['id']]['finance'] = curJson['vol']
+    return _getBroadResult(gUser,'setFinance',true,gData[gUser])
+end
+
 function addUserProperty(pKey,pData)
     if gUser ~= gData['owner'] then
         return 'fail 1'
@@ -291,7 +304,7 @@ function addWeapon(pData)
     if gUser ~= gData['owner'] then
         return 'fail 1'
     end
-    local check = {'id','uid','bid','at','rg','wt','bk','sk'}
+    local check = {'id','uid','bid','at','rg','wt','bk','sk','vol'}
     local curJson = json.decode(pData)
     if _check(check,curJson) == false then
         return 'fail 2'
@@ -312,7 +325,7 @@ function addArmor(pData)
     if gUser ~= gData['owner'] then
         return 'fail 1'
     end
-    local check = {'id','uid','bid','hp','wt','bk','sk'}
+    local check = {'id','uid','bid','hp','wt','bk','sk','vol'}
     local curJson = json.decode(pData)
     if _check(check,curJson) == false then
         return 'fail 2'
@@ -333,7 +346,7 @@ function addPotion(pData)
     if gUser ~= gData['owner'] then
         return 'fail 1'
     end
-    local check = {'id','uid','bid','hp','wt','bk','sk'}
+    local check = {'id','uid','bid','hp','wt','bk','sk','vol'}
     local curJson = json.decode(pData)
     if _check(check,curJson) == false then
         return 'fail 2'
@@ -547,6 +560,9 @@ function leave()
         return 'fail 2'
     end
     local curTid = gData[gUser]['stat']
+    if gData['system']['city'][curTid] == nil then
+        return 'fail 3'
+    end
     local ox = gData['system']['city'][curTid]['outx']
     local oy = gData['system']['city'][curTid]['outy']
     gData[gUser]['x'] = ox
@@ -647,6 +663,79 @@ function move(pData)
     return _getBroadResult(gUser,'move',false,gData[gUser])
 end
 
+function say(pData)
+    if pData == nil then
+        return 'fail 0'
+    end
+    gData[gUser]['say'] = pData
+    return _getBroadResult(gUser,'say',false,gData[gUser])
+end
+
+function buy(pData)
+    if gData[gUser] == nil then
+        return 'fail 0'
+    end
+    local check = {'id','rid','type','vol'}
+    local curJson = json.decode(pData)
+    if _check(check,curJson) == false then
+        return 'fail 1'
+    end
+    curJson['vol'] = math.floor( curJson['vol'] )
+    if curJson['type'] ~= 'weapon' and curJson['type'] ~= 'armor' and curJson['type'] ~= 'potion' then
+        return 'fail 2'
+    end
+    if gData['system'][curJson['type']][curJson['id']] == nil then
+        return 'fail 3'
+    end
+    if tonumber(gData[gUser]['finance']) < gData['system'][curJson['type']][curJson['id']]['bk']*curJson['vol'] then
+        return 'fail 4'
+    end
+    if curJson['vol'] > tonumber(gData['system'][curJson['type']][curJson['id']]['vol']) then
+        return 'fail 5'
+    end
+    if gData[gUser]['roles'][curJson['rid']] == nil then
+        return 'fail 6'
+    end
+    gData[gUser]['finance'] = gData[gUser]['finance']-gData['system'][curJson['type']][curJson['id']]['bk']*curJson['vol']
+    gData['system'][curJson['type']][curJson['id']]['vol'] = gData['system'][curJson['type']][curJson['id']]['vol']-curJson['vol']
+    if gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']] == nil then
+        gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']] = _clone(gData['system'][curJson['type']][curJson['id']])
+    end
+    gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']]['vol'] = curJson['vol']
+    return _getBroadResult(gUser,'buy',true,gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']])
+end
+
+function sell(pData)
+    if gData[gUser] == nil then
+        return 'fail 0'
+    end
+    local check = {'id','rid','type','vol'}
+    local curJson = json.decode(pData)
+    if _check(check,curJson) == false then
+        return 'fail 1'
+    end
+    curJson['vol'] = math.floor( curJson['vol'] )
+    if curJson['type'] ~= 'weapon' and curJson['type'] ~= 'armor' and curJson['type'] ~= 'potion' then
+        return 'fail 2'
+    end
+    if gData['system'][curJson['type']][curJson['id']] == nil then
+        return 'fail 3'
+    end
+    if gData[gUser]['roles'][curJson['rid']] == nil then
+        return 'fail 4'
+    end
+    if tonumber(gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']]['vol']) < curJson['vol'] then
+        return 'fail 5'
+    end
+    gData[gUser]['finance'] = gData[gUser]['finance']+gData['system'][curJson['type']][curJson['id']]['sk']*curJson['vol']
+    gData['system'][curJson['type']][curJson['id']]['vol'] = gData['system'][curJson['type']][curJson['id']]['vol']+curJson['vol']
+    gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']]['vol'] = gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']]['vol']-curJson['vol']
+    if gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']]['vol'] < 1 then
+        gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']] = nil
+    end
+    return _getBroadResult(gUser,'sell',true,gData[gUser]['roles'][curJson['rid']]['goods'][curJson['id']])
+end
+
 function reset()
     if gData['owner'] ~= gUser then
         return 'fail 0'
@@ -669,17 +758,17 @@ function reset()
     print(json.encode(cur))
     --print(getDump())
     --role main
-    cur = {id='r0',cid='ming',name='wang',type='man',image='role/wang',w='50',h='100',wb='50',hb='20'}
+    cur = {id='r0',cid='ming',name='wang',type='man',image='role/wang',w='70',h='100',wb='70',hb='20'}
     ret = addUnit(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
     --role soldier
-    cur = {id='s0',cid='ming',name='dadao',type='soldier',image='role/dadao',w='50',h='100',wb='50',hb='20'}
+    cur = {id='s0',cid='ming',name='dadao',type='soldier',image='role/dadao',w='70',h='100',wb='70',hb='20'}
     ret = addUnit(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
     --role monster
-    cur = {id='m0',cid='ming',name='snake',type='monster',image='role/snake',w='20',h='60',wb='20',hb='10'}
+    cur = {id='m0',cid='ming',name='snake',type='monster',image='role/snake',w='40',h='60',wb='40',hb='10'}
     ret = addUnit(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
@@ -725,7 +814,11 @@ function reset()
     print(json.encode(cur))
     --print(getDump())
 
-    cur = {id='city0',uid='c0',sid='huadong',x='200',y='200',outx='150',outy='200',pp='10000',inside='inside/city0'}
+    cur = {id='city0',uid='c0',sid='huadong',x='200',y='200',outx='200',outy='450',pp='10000',inside='inside/city0'}
+    ret = addCity(json.encode(cur))
+    print(json.encode(cur))
+
+    cur = {id='city1',uid='c0',sid='huadong',x='900',y='1200',outx='900',outy='1450',pp='50000',inside='inside/city1'}
     ret = addCity(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
@@ -750,17 +843,17 @@ function reset()
     print(json.encode(cur))
     --print(getDump())
 
-    cur = {id='weapon0',uid='w0',bid='building0',at='5',rg='1',wt='5',bk='10',sk='2'}
+    cur = {id='weapon0',uid='w0',bid='building0',at='5',rg='1',wt='5',bk='10',sk='2',vol='999'}
     ret = addWeapon(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
 
-    cur = {id='armor0',uid='a0',bid='building1',hp='10',wt='5',bk='10',sk='2'}
+    cur = {id='armor0',uid='a0',bid='building1',hp='10',wt='5',bk='10',sk='2',vol='888'}
     ret = addArmor(json.encode(cur))
     print(json.encode(cur))
     --print(getDump())
 
-    cur = {id='potion0',uid='p0',bid='building2',hp='10',wt='1',bk='2',sk='0'}
+    cur = {id='potion0',uid='p0',bid='building2',hp='10',wt='1',bk='2',sk='0',vol='777'}
     ret = addPotion(json.encode(cur))
     print(json.encode(cur))
     return _getBroadResult(gUser,'reset',true,'ok')
@@ -771,116 +864,7 @@ init()
 local ret
 local cur = {}
 
-cur = {id='null',name='null',tid='null'}
-ret = addCountry(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='ming',name='ming chao',tid='city0'}
-ret = addCountry(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='huadong',name='huadong',cid='ming',cx='0',cy='0',w='2000',h='2000',image='scene/huadong.png'}
-ret = addScene(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---role main
-cur = {id='r0',cid='ming',name='wang',type='man',image='role/wang',w='50',h='100',wb='50',hb='20'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---role soldier
-cur = {id='s0',cid='ming',name='dadao',type='soldier',image='role/dadao',w='50',h='100',wb='50',hb='20'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---role monster
-cur = {id='m0',cid='ming',name='snake',type='monster',image='role/snake',w='20',h='60',wb='20',hb='10'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---city
-cur = {id='c0',cid='null',name='shanghai',type='city',image='city/shanghai',w='200',h='200',wb='200',hb='100'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---building
-cur = {id='b0',cid='null',name='room',type='building',image='building/room',w='200',h='150',wb='null',hb='null'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---weapon
-cur = {id='w0',cid='null',name='dao',type='weapon',image='weapon/dao',w='null',h='null',wb='null',hb='null'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---armor
-cur = {id='a0',cid='null',name='yifu',type='armor',image='armor/yifu',w='null',h='null',wb='null',hb='null'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---potion
-cur = {id='p0',cid='null',name='hong',type='potion',image='potion/hong',w='null',h='null',wb='null',hb='null'}
-ret = addUnit(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
---main role
-cur = {id='main0',uid='r0',head='role/headwang',st='5',hp='5',wt='5',exp='0',expm='10',lv='1',spd='300',able='15',power='0',price='0'}
-ret = addRole(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---soldier
-cur = {id='soldier0',uid='s0',head='role/headdadao',st='15',hp='10',wt='5',exp='0',expm='10',lv='1',spd='300',able='0',power='0',price='100'}
-ret = addRole(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
---monster
-cur = {id='monster0',uid='m0',head='role/headsnake',st='5',hp='10',wt='5',exp='0',expm='10',lv='1',spd='300',able='0',power='0',price='100'}
-ret = addRole(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='city0',uid='c0',sid='huadong',x='200',y='200',outx='150',outy='200',pp='10000',inside='inside/city0'}
-ret = addCity(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
---cur = {id='player0 address',sid='huadong',rid0='main0',rid1='',name='haha',power='0',limit='3',finance='1000',x='0',y='0',xt='0',yt='0',movetime='0',stat='city0',online='N'}
---ret = _addPlayer(json.encode(cur))
---print(json.encode(cur))
---print(getDump())
-
-cur = {id='building0',uid='b0',tid='city0',x='100',y='200'}
-ret = addBuilding(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='building1',uid='b0',tid='city0',x='200',y='300'}
-ret = addBuilding(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='building2',uid='b0',tid='city0',x='300',y='400'}
-ret = addBuilding(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='weapon0',uid='w0',bid='building0',at='5',rg='1',wt='5',bk='10',sk='2'}
-ret = addWeapon(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='armor0',uid='a0',bid='building1',hp='10',wt='5',bk='10',sk='2'}
-ret = addArmor(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
-
-cur = {id='potion0',uid='p0',bid='building2',hp='10',wt='1',bk='2',sk='0'}
-ret = addPotion(json.encode(cur))
-print(json.encode(cur))
---print(getDump())
+reset()
 
 cur = {rid='main0',name='55'}
 ret = createPlayer(json.encode(cur))
@@ -899,7 +883,7 @@ print(json.encode(ret))
 
 cur = {tid='city0'}
 ret = enter(json.encode(cur))
-print(json.encode(cur))
+print(json.encode(ret))
 
 cur = {}
 ret = leave()
@@ -907,7 +891,7 @@ print(json.encode(cur))
 
 cur = {tid='city0'}
 ret = enter(json.encode(cur))
-print(json.encode(cur))
+print(json.encode(ret))
 
 cur = {}
 ret = leave()
@@ -928,3 +912,15 @@ cur = json.decode(getDump())
 cur = {x='150',y='210',xt='200',yt='300'}
 ret = move(json.encode(cur))
 print(json.encode(ret))
+
+cur = {id='weapon0',rid='main0',vol='2',type='weapon'}
+ret = buy(json.encode(cur))
+print(json.encode(ret))
+
+print(gData[gUser]['finance'])
+
+cur = {id='weapon0',rid='main0',vol='2',type='weapon'}
+ret = sell(json.encode(cur))
+print(json.encode(ret))
+
+print(gData[gUser]['finance'])
